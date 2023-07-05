@@ -1,5 +1,0 @@
-/db/**
-/.idea/**
-/target/**
-results.txt
-derby.log

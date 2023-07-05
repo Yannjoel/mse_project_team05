@@ -21,7 +21,7 @@ import java.util.Map;
 public class CrawlerNicenessHelper {
 
     private static final String USER_AGENT = "mse_project_crawler";
-    private static final int DEFAULT_CRAWL_DELAY_IN_SECONDS = 5;
+    private static final int DEFAULT_CRAWL_DELAY_IN_SECONDS = 2;
     private static final Logger LOG = LogManager.getLogger(CrawlerNicenessHelper.class);
     private static CrawlerNicenessHelper singletonInstance;
     private final Map<String, RobotsTxt> cachedRobotsTxt;

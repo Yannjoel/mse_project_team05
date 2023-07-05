@@ -27,12 +27,12 @@ public class WebsiteModelUtils {
         this.dbSession = dbSession;
     }
 
-    public Collection<Link> getOutgoingLinksForDoc(Document doc) {
+    public Collection<Link> getOutgoingLinksForDoc(Document doc, String currentFullUrl) {
         Set<Link> outgoingLinks = new HashSet<>();
         Elements linkHtmlElements = doc.select("a");
         linkHtmlElements.forEach(link -> {
             if (link.hasAttr("href")) {
-                String linkUrl = formatLinkUrl(link.attr("href"));
+                String linkUrl = formatLinkUrl(link.attr("href"), currentFullUrl);
                 if (linkUrl != null) {
                     String linkText = link.text();
 
@@ -54,9 +54,16 @@ public class WebsiteModelUtils {
      * @param linkUrl no yet formatted http(s) link
      * @return formatted link
      */
-    private String formatLinkUrl(String linkUrl) {
+    private String formatLinkUrl(String linkUrl, String currentFullUrl) {
         String formattedURL = null;
+
         try {
+            //append current url if link is relative or anchor link
+            if(StringUtils.startsWith(linkUrl, "/") || StringUtils.startsWith(linkUrl, "#")  ){
+                URL currentUrl = URI.create(currentFullUrl).toURL();
+                String currentPathPrefix = currentUrl.getProtocol() + "://" + currentUrl.getHost();
+                linkUrl = currentPathPrefix + linkUrl;
+            }
             URL url = URI.create(linkUrl).toURL();
             formattedURL = url.getProtocol() + "://" + url.getHost() + url.getFile();
             //ToDo: check if we need to also focus on parameters

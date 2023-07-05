@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+/db/**
+/.idea/**
+/target/**
+results.txt
+derby.log

@@ -2,6 +2,8 @@ package de.mse.team5.hibernate;
 
 import de.mse.team5.hibernate.model.Link;
 import de.mse.team5.hibernate.model.Website;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
@@ -11,10 +13,11 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import java.util.Properties;
 
 /**
- * Based on https://www.javaguides.net/2023/03/hibernate-6-example-tutorial.html
  * See file hinerate.cfg.xml to change connection settings
  */
 public class HibernateUtil {
+
+    private static final Logger LOG = LogManager.getLogger(HibernateUtil.class);
     private static StandardServiceRegistry registry;
     private static SessionFactory sessionFactory;
 
@@ -38,9 +41,8 @@ public class HibernateUtil {
 
                 // Create SessionFactory
                 sessionFactory = metadata.getSessionFactoryBuilder().build();
-                //System.out.println( sessionFactory.getProperties().get("hibernate.connection.url"));
             } catch (Exception e) {
-                e.printStackTrace();
+                LOG.warn("Failed to create DB connection due to ", e);
                 if (registry != null) {
                     StandardServiceRegistryBuilder.destroy(registry);
                 }

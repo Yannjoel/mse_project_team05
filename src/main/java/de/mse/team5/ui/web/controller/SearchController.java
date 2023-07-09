@@ -2,13 +2,10 @@ package de.mse.team5.ui.web.controller;
 
 import de.mse.team5.ui.web.dto.WebsiteSearchResult;
 import de.mse.team5.ui.web.service.SearchService;
-import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.core.appender.rewrite.MapRewritePolicy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.Mapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -16,7 +13,7 @@ import java.util.List;
 @Controller
 public class SearchController {
 
-    private SearchService searchService = new SearchService();
+    private final SearchService searchService = new SearchService();
 
     @GetMapping(value="/", produces = MediaType.TEXT_HTML_VALUE)
     public String initialSearchPage(Model model){

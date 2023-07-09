@@ -2,20 +2,20 @@ package de.mse.team5.hibernate.helper;
 
 import de.mse.team5.hibernate.model.Link;
 import de.mse.team5.hibernate.model.Website;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class WebsiteModelUtils {
 
@@ -31,15 +31,9 @@ public class WebsiteModelUtils {
         Set<Link> outgoingLinks = new HashSet<>();
         Elements linkHtmlElements = doc.select("a");
         linkHtmlElements.forEach(link -> {
-            if (link.hasAttr("href")) {
-                String linkUrl = formatLinkUrl(link.attr("href"), currentFullUrl);
-                if (linkUrl != null) {
-                    String linkText = link.text();
-
-                    //ToDo: get existing link for db if possible?
-                    Link outgoingLink = new Link();
-                    outgoingLink.setUrl(linkUrl);
-                    outgoingLink.setLinkText(linkText);
+            if (linkMatchesFilter(link)) {
+                Link outgoingLink = Link.createNewLink(link.attr("href"), currentFullUrl, link.text());
+                if (outgoingLink != null) {
                     outgoingLinks.add(outgoingLink);
                 }
             }
@@ -49,28 +43,17 @@ public class WebsiteModelUtils {
     }
 
     /**
-     * Ensures that all links are equally formatted
+     * Check if a link is relevant for crawling
+     * For example exclude links to anchors on the same site or mailto links
      *
-     * @param linkUrl no yet formatted http(s) link
-     * @return formatted link
+     * @param link link as found in the href tag
+     * @return true if the link should be saved and crawled
      */
-    private String formatLinkUrl(String linkUrl, String currentFullUrl) {
-        String formattedURL = null;
-
-        try {
-            //append current url if link is relative or anchor link
-            if(StringUtils.startsWith(linkUrl, "/") || StringUtils.startsWith(linkUrl, "#")  ){
-                URL currentUrl = URI.create(currentFullUrl).toURL();
-                String currentPathPrefix = currentUrl.getProtocol() + "://" + currentUrl.getHost();
-                linkUrl = currentPathPrefix + linkUrl;
-            }
-            URL url = URI.create(linkUrl).toURL();
-            formattedURL = url.getProtocol() + "://" + url.getHost() + url.getFile();
-            //ToDo: check if we need to also focus on parameters
-        } catch (Exception e) {
-            LOG.warn("malformed url " + linkUrl, e);
+    private boolean linkMatchesFilter(Element link) {
+        if (!link.hasAttr("href")) {
+            return false;
         }
-        return formattedURL;
+        return StringUtils.startsWith(link.attr("href"), "http") || StringUtils.startsWith(link.attr("href"), "/");
     }
 
     /**
@@ -100,17 +83,54 @@ public class WebsiteModelUtils {
     }
 
     private void saveWebsiteToDb(Website website) {
-        saveWebsiteLinksToDb(website.getOutgoingLinks());
-        dbSession.getTransaction().begin();
-        dbSession.persist(website);
-        dbSession.getTransaction().commit();
+        try {
+            saveWebsiteLinksToDb(website.getOutgoingLinks());
+            dbSession.getTransaction().begin();
+            dbSession.persist(website);
+            dbSession.flush();
+            dbSession.getTransaction().commit();
+        } catch (HibernateException e) {
+            LOG.warn("Failed to save website \"" + website.getUrl() + "\" to db due to ", e);
+        }
     }
 
     private void saveWebsiteLinksToDb(Collection<Link> outgoingLinks) {
         for (Link link : outgoingLinks) {
-            dbSession.getTransaction().begin();
-            dbSession.persist(link);
-            dbSession.getTransaction().commit();
+            try {
+                Link existingIdenticalLinkInDb = findIdenticalLinkInDb(link);
+                if(existingIdenticalLinkInDb != null){
+                    link = existingIdenticalLinkInDb;
+                }
+                else {
+                    dbSession.getTransaction().begin();
+                    dbSession.persist(link);
+                    dbSession.flush();
+                    dbSession.getTransaction().commit();
+                }
+            } catch (HibernateException e) {
+                LOG.warn("Failed to save Link \"" + link.getUrl() + "\" to db due to ", e);
+            }
         }
+    }
+
+    private Link findIdenticalLinkInDb(Link link) {
+        Link existingLink = null;
+
+        CriteriaBuilder cb = dbSession.getCriteriaBuilder();
+        CriteriaQuery<Link> cr = cb.createQuery(Link.class);
+        Root<Link> root = cr.from(Link.class);
+        cr.select(root).where(cb.equal(root.get("url"), link.getUrl()));
+
+        Query<Link> query = dbSession.createQuery(cr);
+        List<Link> results = query.getResultList();
+
+        for(Link result: results){
+            if(StringUtils.equals(result.getLinkText(),link.getLinkText())){
+                existingLink = result;
+                break;
+            }
+        }
+
+        return existingLink;
     }
 }

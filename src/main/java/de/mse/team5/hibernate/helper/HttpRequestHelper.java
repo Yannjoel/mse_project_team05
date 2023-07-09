@@ -19,7 +19,7 @@ public class HttpRequestHelper {
             doc = conn.get();
         }
         catch (IOException e){
-            LOG.warn("Website" + url + "not available due to ", e);
+            LOG.warn("Website " + url + " not available due to ", e);
         }
         return doc;
     }

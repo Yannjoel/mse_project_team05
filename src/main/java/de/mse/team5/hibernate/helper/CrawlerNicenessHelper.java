@@ -2,6 +2,7 @@ package de.mse.team5.hibernate.helper;
 
 import com.panforge.robotstxt.Grant;
 import com.panforge.robotstxt.RobotsTxt;
+import de.mse.team5.hibernate.model.Link;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,30 +10,23 @@ import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CrawlerNicenessHelper {
 
     private static final String USER_AGENT = "mse_project_crawler";
-    private static final int DEFAULT_CRAWL_DELAY_IN_SECONDS = 2;
+    private static final int DEFAULT_CRAWL_DELAY_IN_SECONDS = 1;
     private static final Logger LOG = LogManager.getLogger(CrawlerNicenessHelper.class);
     private static CrawlerNicenessHelper singletonInstance;
     private final Map<String, RobotsTxt> cachedRobotsTxt;
-    private final Map<String, Instant> domainCrawlTimes;
 
     private CrawlerNicenessHelper() {
         //prevent initialization - use getCrawlerNicenessHelper instead
         this.cachedRobotsTxt = new HashMap<>();
-        this.domainCrawlTimes = new HashMap<>();
     }
-
 
 
     public static CrawlerNicenessHelper getCrawlerNicenessHelper() {
@@ -43,47 +37,31 @@ public class CrawlerNicenessHelper {
     }
 
 
-    public boolean isUrlAllowedByRobotsTxt(String fullUrl) {
-        try {
-            URL url = URI.create(fullUrl).toURL();
-            String baseUrl = url.getHost();
-            String urlPath = url.getFile();
-            return getRobotsTextForUrl(baseUrl).query(USER_AGENT, urlPath);
-        } catch (MalformedURLException e) {
+    public boolean isUrlAllowedByRobotsTxt(Link link) {
+        if (link.getHostUrl() == null) {
+            //we don't want to crawl links without a valid url
             return false;
         }
-    }
-
-    public Instant getNextCrawlTime(String fullUrl) {
-
-        Instant nextCrawlTime = null;
-        try {
-            URL url = URI.create(fullUrl).toURL();
-            String host = url.getHost();
-            String urlPath = url.getFile();
-
-            int crawlDelayInSec = getCrawlDelay(host, urlPath);
-
-            if(domainCrawlTimes.containsKey(host)){
-                Instant lastCrawlTime = domainCrawlTimes.get(host);
-                nextCrawlTime = lastCrawlTime.plusSeconds(crawlDelayInSec);
-            }
-            else{
-                nextCrawlTime = Instant.now();
-            }
-            domainCrawlTimes.put(host, nextCrawlTime);
-        } catch (MalformedURLException e) {
-            LOG.warn("Error while calculation delay for " + fullUrl + " - caused by", e);
+        String hostUrl = link.getHostUrl();
+        String urlPath = link.getUrlPath();
+        RobotsTxt robotsTxt = getRobotsTextForUrl(hostUrl);
+        if (robotsTxt == null) {
+            //assume no restriction if there's no robots.txt
+            return true;
         }
-        return nextCrawlTime;
+        return getRobotsTextForUrl(hostUrl).query(USER_AGENT, urlPath);
     }
 
-    public int getCrawlDelay(String host, String urlPath) {
+    public int getCrawlDelay(Link link) {
+        String url = link.getHostUrl();
+        //possible Todo: add caching in separate map
         int crawlDelay = DEFAULT_CRAWL_DELAY_IN_SECONDS;
-            Grant grantedAccess = getRobotsTextForUrl(host).ask(USER_AGENT, urlPath);
+        if (getRobotsTextForUrl(link.getHostUrl()) != null) {
+            Grant grantedAccess = getRobotsTextForUrl(link.getHostUrl()).ask(USER_AGENT, link.getUrlPath());
             if (grantedAccess != null && grantedAccess.getCrawlDelay() != null) {
                 crawlDelay = grantedAccess.getCrawlDelay();
             }
+        }
         return crawlDelay;
     }
 
@@ -94,21 +72,22 @@ public class CrawlerNicenessHelper {
      * @return RobotsTxt object of the website (if available)
      */
     private RobotsTxt getRobotsTextForUrl(String host) {
-        RobotsTxt robotsTxt;
+        RobotsTxt robotsTxt = null;
         if (cachedRobotsTxt.containsKey(host)) {
             robotsTxt = cachedRobotsTxt.get(host);
         } else {
-            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteForUrl("http://" + host + "/robots.txt");
-            InputStream inputStream = IOUtils.toInputStream(robotsTxtWebsite.body().text(), StandardCharsets.UTF_8);
-            try {
-                robotsTxt = RobotsTxt.read(inputStream);
+            String robotsTxtUrl = host + "/robots.txt";
+            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteForUrl(robotsTxtUrl);
+            if (robotsTxtWebsite != null) {
+                InputStream inputStream = IOUtils.toInputStream(robotsTxtWebsite.body().text(), StandardCharsets.UTF_8);
+                try {
+                    robotsTxt = RobotsTxt.read(inputStream);
+                } catch (IOException e) {
+                    LOG.warn("Failed to load robots txt at " + robotsTxtUrl + " due to ", e);
+                }
                 this.cachedRobotsTxt.put(host, robotsTxt);
-            } catch (IOException e) {
-                //ToDo: Error handling
-                throw new RuntimeException(e);
             }
         }
-
         return robotsTxt;
     }
 }

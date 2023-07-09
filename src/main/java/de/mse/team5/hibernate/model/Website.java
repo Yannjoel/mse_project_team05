@@ -6,11 +6,12 @@ import java.util.Date;
 import java.util.Collection;
 
 @Entity
-@Table(name = "websites", indexes = {
+@Table(name = "website", indexes = {
         @Index(name = "url_idx", columnList = "url")
 })
 public class Website {
     @Id
+    @Column(length = 2048, columnDefinition = "varchar(2048)")
     private String url;
 
     @Basic(optional = false)
@@ -26,7 +27,10 @@ public class Website {
     @Basic(optional = true)
     private Date lastChanged;
 
-    @ManyToMany
+    @ManyToMany(cascade=CascadeType.ALL)
+    @JoinTable(name = "website_link",
+            joinColumns = @JoinColumn(name = "website_url"),
+            inverseJoinColumns = @JoinColumn(name = "link_id"))
     private Collection<Link> outgoingLinks;
 
     public String getContent() {

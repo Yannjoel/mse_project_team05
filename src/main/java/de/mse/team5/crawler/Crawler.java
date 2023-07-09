@@ -5,12 +5,9 @@ import de.mse.team5.hibernate.helper.CrawlerNicenessHelper;
 import de.mse.team5.hibernate.helper.HttpRequestHelper;
 import de.mse.team5.hibernate.helper.WebsiteModelUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.Session;
-import org.hibernate.annotations.BatchSize;
 import org.jsoup.nodes.Document;
 
 import java.time.Duration;
@@ -19,13 +16,12 @@ import java.util.*;
 
 import de.mse.team5.hibernate.model.Link;
 
+import static de.mse.team5.crawler.CrawlerFilters.fitsCrawlFilter;
+import static de.mse.team5.hibernate.helper.CrawlerNicenessHelper.getCrawlerNicenessHelper;
+
 public class Crawler {
 
-    public static final Collection<String> entryUrls = Arrays.asList("https://yannick-huber.de");
-    public static final Collection<String> allowedUrls = Arrays.asList("https://yannick-huber.de");
-    //If enabled the crawler won't touch any other sites that it discovers and will only crawl the website mentioned in the entryUrls
-    public static final Boolean siteRestrictedTestMode = Boolean.TRUE;
-    private static final int CRAWL_BATCH_SIZE = 200; //only calculating a fixed amount of crawl times to prevent errors due to congestion
+    public static final Collection<Link> entryUrls = Arrays.asList(Link.createNewLink("https://yannick-huber.de/"), Link.createNewLink("https://www.tuebingen.de/"));
 
     protected WebsiteModelUtils websiteUtils;
 
@@ -33,9 +29,9 @@ public class Crawler {
 
     private final Set<String> crawledLinks = new HashSet<>();
     private final Set<String> linksToCrawlSet = new HashSet<>();
-    private final Queue<String> linksToCrawl = new ArrayDeque<>();
+    private final Queue<Link> linksToCrawl = new ArrayDeque<>();
 
-    List<Pair<String, Instant>> linksWithEarliestCrawlTime = new ArrayList<>();
+    private final Map<String, Instant> hostToLastCrawltimeMap = new HashMap<>();
 
     public static void main(String[] args) {
         Crawler crawler = new Crawler();
@@ -49,26 +45,57 @@ public class Crawler {
 
         //insert start List
         linksToCrawl.addAll(entryUrls);
+        linksToCrawlSet.addAll(entryUrls.stream().map(Link::getUrl).toList());
 
-        while (!linksToCrawl.isEmpty() || !linksWithEarliestCrawlTime.isEmpty()) {
-            fillUpCrawlAbleSitesWithCrawlTimes();
-            Queue<String> linksReadyForCrawling = getReadyToCrawlLinksRespectingCrawlDelay();
-            while(!linksReadyForCrawling.isEmpty()) {
-                String url = linksReadyForCrawling.poll();
-                crawlAndIndexWebsite(url);
+        while (!linksToCrawl.isEmpty() && crawledLinks.size() < 100) {
+            Link link = linksToCrawl.poll();
+            linksToCrawlSet.remove(link.getUrl());
 
-            }
-            sleepUntilNextCrawlTime();
+            Instant crawlTime = getCrawlTimeForLink(link);
+            sleepUntilCrawlTime(crawlTime);
+            crawlAndIndexWebsite(link);
         }
 
         dbSession.close();
         LOG.info("Finished crawling");
     }
 
-    private void crawlAndIndexWebsite(String url) {
+    private void sleepUntilCrawlTime(Instant nextCrawlTime) {
+        Instant now = Instant.now();
+        if (!now.isBefore(nextCrawlTime)) {
+            return;
+        }
+        //Sleep while waiting for crawl delay
+        Duration waitTime = Duration.between(now, nextCrawlTime);
+        LOG.debug("Waiting for crawl delay - wait time: " + waitTime.toString());
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+            LOG.warn("Waiting interrupted due to ", e);
+        }
+    }
+
+    private Instant getCrawlTimeForLink(Link link) {
+        String host = link.getHostUrl();
+        Instant lastCrawlTime = this.hostToLastCrawltimeMap.get(host);
+        if (lastCrawlTime == null) {
+            return Instant.now();
+        }
+        int crawlDelay = getCrawlerNicenessHelper().getCrawlDelay(link);
+        return lastCrawlTime.plusSeconds(crawlDelay);
+    }
+
+    private void crawlAndIndexWebsite(Link link) {
+        LOG.info("crawling " + link.getUrl());
+
+        String url = link.getUrl();
+        //download website
         Document doc = HttpRequestHelper.downloadWebsiteForUrl(url);
+        this.hostToLastCrawltimeMap.put(link.getHostUrl(), Instant.now());
+        crawledLinks.add(url);
+
         if (doc != null) {
-            //download and save website to db
+            //save website to db
             String websiteContent = doc.body().text();
             String websiteTitle = doc.title();
             Collection<Link> outgoingLinks = websiteUtils.getOutgoingLinksForDoc(doc, url);
@@ -76,96 +103,28 @@ public class Crawler {
 
             //add outgoing links to crawl-list if they fit our selection criteria
             for (Link outgoingLink : outgoingLinks) {
-                if (linkShouldBeCrawled(outgoingLink, crawledLinks, linksToCrawlSet)) {
-                    linksToCrawl.add(outgoingLink.getUrl());
+                if (linkShouldBeCrawled(outgoingLink)) {
+                    linksToCrawl.add(outgoingLink);
                     linksToCrawlSet.add(outgoingLink.getUrl()); //for faster checking if the list contains the element
                 }
             }
         }
     }
 
-    /**
-     * Lets the thread sleep until the next available crawl time (respecting the crawl delay)
-     */
-    private void sleepUntilNextCrawlTime() {
-        //Sleep if only waiting for crawl delay
-        if (linksToCrawl.isEmpty() && !linksWithEarliestCrawlTime.isEmpty()){
-            Instant nextCrawlTime = getNearestCrawlDelayTime();
-            Duration waitTime = Duration.between(Instant.now(), nextCrawlTime);
-            LOG.debug("Waiting for crawl delay - wait time: " + waitTime.toString());
-            try {
-                Thread.sleep(waitTime);
-            } catch (InterruptedException e) {
-                LOG.warn("Waiting interrupted due to ", e);
-            }
-        }
-    }
-
-    /**
-     * @return all Link urls from linksWithNextCrawlTime who's timestamp of their crawl delay has passed by
-     */
-    private Queue<String> getReadyToCrawlLinksRespectingCrawlDelay() {
-        Instant compareTime = Instant.now();
-        List<Pair<String, Instant>> linksReadyForCrawlingWithTime = this.linksWithEarliestCrawlTime.stream()
-                .filter(pair -> pair.getRight().isBefore(compareTime))
-                .toList();
-        //ToDo: move side effect?
-        linksWithEarliestCrawlTime.removeAll(linksReadyForCrawlingWithTime);
-
-        Queue<String>  linksReadyForCrawlingAsQueue = new ArrayDeque<>();
-        for(Pair<String, Instant> linkTimePair: linksReadyForCrawlingWithTime) {
-            linksReadyForCrawlingAsQueue.add(linkTimePair.getLeft());
-        }
-
-        return linksReadyForCrawlingAsQueue;
-    }
-
-    /**
-     * @return Time of the link with the shortest crawl delay
-     */
-    private Instant getNearestCrawlDelayTime() {
-        Optional<Instant> nearestCrawlTime = this.linksWithEarliestCrawlTime.stream()
-                .sorted(Comparator.comparing(Pair::getRight))
-                .map(Pair::getRight)
-                .findFirst();
-        return nearestCrawlTime.orElseGet(Instant::now);
-    }
-
-    private void fillUpCrawlAbleSitesWithCrawlTimes() {
-        int numberOfAddedUrls = 0;
-        while(!linksToCrawl.isEmpty() && numberOfAddedUrls < CRAWL_BATCH_SIZE) {
-            String url = linksToCrawl.poll();
-            linksToCrawlSet.remove(url);
-            crawledLinks.add(url);
-
-            Instant nextCrawlTimeForUrl = CrawlerNicenessHelper.getCrawlerNicenessHelper().getNextCrawlTime(url);
-            Pair<String, Instant> linkWithCrawlTime = new ImmutablePair<>(url, nextCrawlTimeForUrl);
-            this.linksWithEarliestCrawlTime.add(linkWithCrawlTime);
-
-            numberOfAddedUrls+=1;
-        }
-    }
-
-    private boolean linkShouldBeCrawled(Link outgoingLink, Set<String> crawledLinks, Set<String> linksToCrawlSet) {
+    private boolean linkShouldBeCrawled(Link outgoingLink) {
         String urlToCheck = outgoingLink.getUrl();
-        return !crawledLinks.contains(urlToCheck) && !linksToCrawlSet.contains(urlToCheck) && fitsCrawlFilter(outgoingLink) && CrawlerNicenessHelper.getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(urlToCheck);
-
-    }
-
-    private boolean fitsCrawlFilter(Link outgoingLink) {
-        boolean fitsFilter = true;
-
-        //test filter: check if site is in allowed List
-        if(siteRestrictedTestMode) {
-            boolean isInAllowedUrls = false;
-            for (String allowedUrl : allowedUrls) {
-                if (StringUtils.startsWith(outgoingLink.getUrl(), allowedUrl)) {
-                    isInAllowedUrls = true;
-                    break;
-                }
-            }
-            fitsFilter = isInAllowedUrls;
+        if (crawledLinks.contains(urlToCheck))
+            return false;
+        if (linksToCrawlSet.contains(urlToCheck))
+            return false;
+        if (!fitsCrawlFilter(outgoingLink))
+            return false;
+        if(!getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(outgoingLink))
+            return false;
+        if(StringUtils.length(urlToCheck) < 2048){
+            LOG.info("Skipping too long url: " + urlToCheck);
+            return false;
         }
-        return fitsFilter;
+        return true;
     }
 }

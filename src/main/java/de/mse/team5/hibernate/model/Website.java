@@ -1,7 +1,15 @@
 package de.mse.team5.hibernate.model;
 
 import jakarta.persistence.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.annotations.ColumnDefault;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Collection;
 
@@ -10,28 +18,78 @@ import java.util.Collection;
         @Index(name = "url_idx", columnList = "url")
 })
 public class Website {
+
+    private static final Logger LOG = LogManager.getLogger(Website.class);
+
     @Id
     @Column(length = 2048, columnDefinition = "varchar(2048)")
     private String url;
 
-    @Basic(optional = false)
+    @Basic
     @Lob
     private String content;
 
-    @Basic(optional = false)
+    @Basic
     private String title;
 
-    @Basic(optional = false)
-    private Date lastCrawled;
+    @Basic
+    private Instant lastCrawled;
 
-    @Basic(optional = true)
+    @Basic
     private Date lastChanged;
 
     @ManyToMany(cascade=CascadeType.ALL)
     @JoinTable(name = "website_link",
             joinColumns = @JoinColumn(name = "website_url"),
-            inverseJoinColumns = @JoinColumn(name = "link_id"))
-    private Collection<Link> outgoingLinks;
+            inverseJoinColumns = @JoinColumn(name = "website_url"))
+    private Collection<Website> outgoingLinks;
+
+    @Transient
+    private URL urlObj;
+
+    @Transient
+    private boolean calculatedUrlObj = false;
+
+    @Basic(optional = false)
+    private String hostUrl;
+
+    @Basic()
+    @ColumnDefault(value="false")
+    private boolean stagedForCrawling;
+
+    @Basic()
+    @ColumnDefault(value="false")
+    private boolean blockedByRobotsTxt;
+
+    public boolean isBlockedByRobotsTxt() {
+        return blockedByRobotsTxt;
+    }
+
+    public void setBlockedByRobotsTxt(boolean blockedByRobotsTxt) {
+        this.blockedByRobotsTxt = blockedByRobotsTxt;
+    }
+
+    public URL getUrlObj() {
+        if (!this.calculatedUrlObj) {
+            try {
+                this.urlObj = URI.create(this.url).toURL();
+            } catch (MalformedURLException e) {
+                LOG.warn("Malformed url " + this.url, e);
+                this.urlObj = null;
+            }
+            this.calculatedUrlObj = true;
+        }
+        return this.urlObj;
+    }
+
+    public String getUrlPath() {
+        URL ownUrlObj = getUrlObj();
+        if (ownUrlObj == null) {
+            return StringUtils.EMPTY;
+        }
+        return ownUrlObj.getPath();
+    }
+
 
     public String getContent() {
         return content;
@@ -41,11 +99,11 @@ public class Website {
         this.content = content;
     }
 
-    public Date getLastCrawled() {
+    public Instant getLastCrawled() {
         return lastCrawled;
     }
 
-    public void setLastCrawled(Date lastCrawled) {
+    public void setLastCrawled(Instant lastCrawled) {
         this.lastCrawled = lastCrawled;
     }
 
@@ -64,14 +122,15 @@ public class Website {
 
     public void setUrl(String url) {
         this.url = url;
+        this.hostUrl = extractHostUrl();
     }
 
-    public Collection<Link> getOutgoingLinks() {
-        return outgoingLinks;
-    }
-
-    public void setOutgoingLinks(Collection<Link> outgoingLinks) {
-        this.outgoingLinks = outgoingLinks;
+    private String extractHostUrl() {
+        URL ownUrlObj = getUrlObj();
+        if (ownUrlObj == null) {
+            return StringUtils.EMPTY;
+        }
+        return ownUrlObj.getProtocol() + "://" + ownUrlObj.getHost();
     }
 
     public String getTitle() {
@@ -82,4 +141,27 @@ public class Website {
         this.title = title;
     }
 
+    public Collection<Website> getOutgoingLinks() {
+        return outgoingLinks;
+    }
+
+    public void setOutgoingLinks(Collection<Website> outgoingLinks) {
+        this.outgoingLinks = outgoingLinks;
+    }
+
+    public String getHostUrl() {
+        return hostUrl;
+    }
+
+    public void setHostUrl(String hostUrl) {
+        this.hostUrl = hostUrl;
+    }
+
+    public boolean isStagedForCrawling() {
+        return stagedForCrawling;
+    }
+
+    public void setStagedForCrawling(boolean stagedForCrawling) {
+        this.stagedForCrawling = stagedForCrawling;
+    }
 }

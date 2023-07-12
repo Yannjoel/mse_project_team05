@@ -1,7 +1,7 @@
 package de.mse.team5.hibernate;
 
-import de.mse.team5.hibernate.model.Link;
 import de.mse.team5.hibernate.model.Website;
+import jakarta.persistence.EntityManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
@@ -18,6 +18,7 @@ import java.util.Properties;
 public class HibernateUtil {
 
     private static final Logger LOG = LogManager.getLogger(HibernateUtil.class);
+
     private static StandardServiceRegistry registry;
     private static SessionFactory sessionFactory;
 
@@ -35,7 +36,6 @@ public class HibernateUtil {
                 MetadataSources sources = new MetadataSources(registry);
                 //Added new hibernate classes here to enable the creation of the corresponding db- structure
                 sources.addAnnotatedClass(Website.class);
-                sources.addAnnotatedClass(Link.class);
                 // Create Metadata
                 Metadata metadata = sources.getMetadataBuilder().build();
 
@@ -50,7 +50,6 @@ public class HibernateUtil {
         }
         return sessionFactory;
     }
-
     public static void shutdown() {
         if (registry != null) {
             StandardServiceRegistryBuilder.destroy(registry);

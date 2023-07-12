@@ -2,7 +2,7 @@ package de.mse.team5.hibernate.helper;
 
 import com.panforge.robotstxt.Grant;
 import com.panforge.robotstxt.RobotsTxt;
-import de.mse.team5.hibernate.model.Link;
+import de.mse.team5.hibernate.model.Website;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +37,7 @@ public class CrawlerNicenessHelper {
     }
 
 
-    public boolean isUrlAllowedByRobotsTxt(Link link) {
+    public boolean isUrlAllowedByRobotsTxt(Website link) {
         if (link.getHostUrl() == null) {
             //we don't want to crawl links without a valid url
             return false;
@@ -52,12 +52,11 @@ public class CrawlerNicenessHelper {
         return getRobotsTextForUrl(hostUrl).query(USER_AGENT, urlPath);
     }
 
-    public int getCrawlDelay(Link link) {
-        String url = link.getHostUrl();
+    public int getCrawlDelay(String host) {
         //possible Todo: add caching in separate map
         int crawlDelay = DEFAULT_CRAWL_DELAY_IN_SECONDS;
-        if (getRobotsTextForUrl(link.getHostUrl()) != null) {
-            Grant grantedAccess = getRobotsTextForUrl(link.getHostUrl()).ask(USER_AGENT, link.getUrlPath());
+        if (getRobotsTextForUrl(host) != null) {
+            Grant grantedAccess = getRobotsTextForUrl(host).ask(USER_AGENT, "/");
             if (grantedAccess != null && grantedAccess.getCrawlDelay() != null) {
                 crawlDelay = grantedAccess.getCrawlDelay();
             }
@@ -77,7 +76,7 @@ public class CrawlerNicenessHelper {
             robotsTxt = cachedRobotsTxt.get(host);
         } else {
             String robotsTxtUrl = host + "/robots.txt";
-            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteForUrl(robotsTxtUrl);
+            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteContentForUrl(robotsTxtUrl);
             if (robotsTxtWebsite != null) {
                 InputStream inputStream = IOUtils.toInputStream(robotsTxtWebsite.body().text(), StandardCharsets.UTF_8);
                 try {

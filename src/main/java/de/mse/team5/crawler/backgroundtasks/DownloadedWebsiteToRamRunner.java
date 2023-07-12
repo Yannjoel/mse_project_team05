@@ -1,9 +1,8 @@
 package de.mse.team5.crawler.backgroundtasks;
 
-import de.mse.team5.crawler.MultithreadedCrawler;
-import de.mse.team5.hibernate.helper.CrawlerNicenessHelper;
+import de.mse.team5.crawler.dto.DownloadedDocDTO;
 import de.mse.team5.hibernate.helper.HttpRequestHelper;
-import de.mse.team5.hibernate.model.Link;
+import de.mse.team5.hibernate.model.Website;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Document;
@@ -18,30 +17,38 @@ import static de.mse.team5.hibernate.helper.CrawlerNicenessHelper.getCrawlerNice
 public class DownloadedWebsiteToRamRunner implements Runnable {
     public static final Logger LOG = LogManager.getLogger(DownloadedWebsiteToRamRunner.class);
     private final Set<String> currentlyCrawledHostsCopy;
-    private final Set<String> urlsToDownload;
+    private final Set<Website> sitesToDownload;
     private final String host;
-    private final Set<Document> downloadedDocsToProcessCopy;
+    private final Set<DownloadedDocDTO> downloadedDocsToProcessCopy;
 
-    public DownloadedWebsiteToRamRunner(Set<String> urlsOnHostToDownload, Set<String> currentlyCrawledHosts, String host, Set<Document> downloadedDocsToProcess) {
-        this.urlsToDownload = urlsOnHostToDownload;
+    public DownloadedWebsiteToRamRunner(Set<Website> sitesToDownload, Set<String> currentlyCrawledHosts, String host, Set<DownloadedDocDTO> downloadedDocsToProcess) {
+        this.sitesToDownload = sitesToDownload;
         this.currentlyCrawledHostsCopy = currentlyCrawledHosts;
         this.host = host;
-        this.downloadedDocsToProcessCopy =downloadedDocsToProcess;
+        this.downloadedDocsToProcessCopy = downloadedDocsToProcess;
     }
 
     @Override
     public void run() {
-        Link hostLink = Link.createNewLink(this.host);
-        int hostCrawlDelay = getCrawlerNicenessHelper().getCrawlDelay(hostLink);
+        int hostCrawlDelay = getCrawlerNicenessHelper().getCrawlDelay(host);
+
         Duration waitTime = Duration.of(hostCrawlDelay, ChronoUnit.SECONDS);
-        for (String url : urlsToDownload) {
-            LOG.debug("fetching " + url);
+        for (Website site : sitesToDownload) {
+            String siteUrl = site.getUrl();
+            LOG.debug("fetching " + siteUrl);
             //download website
-            Document doc = HttpRequestHelper.downloadWebsiteForUrl(url);
-            if(doc==null){
+            Document doc = null;
+            boolean blockedByRobotsTxt = true;
+            if (getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(site)) {
+                blockedByRobotsTxt = false;
+                doc = HttpRequestHelper.downloadWebsiteContentForUrl(siteUrl);
+            }
+            site.setBlockedByRobotsTxt(blockedByRobotsTxt);
+            DownloadedDocDTO downloadDoc = new DownloadedDocDTO(site, doc, blockedByRobotsTxt, Instant.now());
+            if (doc == null) {
                 continue;
             }
-            downloadedDocsToProcessCopy.add(doc);
+            downloadedDocsToProcessCopy.add(downloadDoc);
             try {
                 Thread.sleep(waitTime);
             } catch (InterruptedException e) {

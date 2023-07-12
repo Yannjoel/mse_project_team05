@@ -4,8 +4,13 @@ import de.mse.team5.hibernate.HibernateUtil;
 import de.mse.team5.hibernate.model.Website;
 import de.mse.team5.ui.web.dto.WebsiteSearchResult;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import smile.nlp.SimpleCorpus;
 import smile.nlp.Text;
 import smile.nlp.relevance.BM25;
@@ -19,11 +24,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class SearchService {
-    private final EntityManager entityManager = HibernateUtil.getSessionFactory().createEntityManager();
 
     public List<Website> getAllWebsites() {
+        Session dbSession = HibernateUtil.getSessionFactory().getCurrentSession();
         //should probably use block-wise fetching when using bigger datasets
-        return entityManager.createQuery("select w from Website w", Website.class).getResultList();
+        CriteriaBuilder cb = dbSession.getCriteriaBuilder();
+        CriteriaQuery<Website> cr = cb.createQuery(Website.class);
+        Root<Website> root = cr.from(Website.class);
+        cr.select(root);
+
+        Query<Website> query = dbSession.createQuery(cr);
+        List<Website> results = query.getResultList();
+
+        return results;
     }
 
     public List<WebsiteSearchResult> getWebsitesForQuery(String query) {

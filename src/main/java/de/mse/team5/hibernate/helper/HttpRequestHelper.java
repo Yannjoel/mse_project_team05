@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class HttpRequestHelper {
     private static final Logger LOG = LogManager.getLogger(HttpRequestHelper.class);
-    public static Document downloadWebsiteForUrl(String url){
+    public static Document downloadWebsiteContentForUrl(String url){
         Document doc = null;
         try {
             //Connecting to the web page

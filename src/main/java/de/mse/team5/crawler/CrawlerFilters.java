@@ -1,7 +1,6 @@
 package de.mse.team5.crawler;
 
-import de.mse.team5.hibernate.helper.CrawlerNicenessHelper;
-import de.mse.team5.hibernate.model.Link;
+import de.mse.team5.hibernate.model.Website;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -17,14 +16,14 @@ public class CrawlerFilters {
 
     private static final String[] URL_ENDINGS_TO_IGNORE = new String[]{".pdf", ".png", ".jpg", ".jpeg", ".mp3", ".xls 2"};
 
-    public static boolean fitsCrawlFilter(Link outgoingLink) {
+    public static boolean fitsCrawlFilter(String url) {
         boolean fitsFilter = true;
 
         //test filter: check if site is in allowed List
         if (siteRestrictedTestMode) {
             boolean isInAllowedUrls = false;
             for (String allowedUrl : allowedUrls) {
-                if (StringUtils.startsWith(outgoingLink.getUrl(), allowedUrl)) {
+                if (StringUtils.startsWith(url, allowedUrl)) {
                     isInAllowedUrls = true;
                     break;
                 }
@@ -33,7 +32,7 @@ public class CrawlerFilters {
         }
 
         //Todo: Check for better filter to detect files
-        if (StringUtils.endsWithAny(outgoingLink.getUrl(), URL_ENDINGS_TO_IGNORE)) {
+        if (StringUtils.endsWithAny(url, URL_ENDINGS_TO_IGNORE)) {
             fitsFilter = false;
         }
         return fitsFilter;

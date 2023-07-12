@@ -1,7 +1,7 @@
 package de.mse.team5.hibernate;
 
 import de.mse.team5.hibernate.model.Website;
-import jakarta.persistence.EntityManager;
+import org.hibernate.community.dialect.SQLiteDialect;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hibernate.SessionFactory;
@@ -23,6 +23,7 @@ public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
     public static SessionFactory getSessionFactory() {
+        SQLiteDialect test = new SQLiteDialect();
         //Set save location of the db file to be contained within the maven project
         Properties props = System.getProperties();
         String dbLocation = props.getProperty("user.dir")+"/db";

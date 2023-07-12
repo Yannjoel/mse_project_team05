@@ -39,9 +39,6 @@ public class Website {
     private Date lastChanged;
 
     @ManyToMany(cascade=CascadeType.ALL)
-    @JoinTable(name = "website_link",
-            joinColumns = @JoinColumn(name = "website_url"),
-            inverseJoinColumns = @JoinColumn(name = "website_url"))
     private Collection<Website> outgoingLinks;
 
     @Transient

@@ -3,9 +3,9 @@
         "http://hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
-        <property name="hibernate.connection.driver_class">org.apache.derby.iapi.jdbc.AutoloadedDriver</property>
-        <property name="hibernate.dialect">org.hibernate.dialect.DerbyDialect</property>
-        <property name="hibernate.connection.url">jdbc:derby:mse_project;create=true;user=root;password=root</property>
+        <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+        <property name="hibernate.dialect">org.hibernate.community.dialect.SQLiteDialect</property>
+        <property name="hibernate.connection.url">jdbc:sqlite:db/database.db</property>
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.show_sql">false</property><!--Enable for debugging-->
         <property name="hibernate.hbm2ddl.auto">update</property>

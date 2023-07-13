@@ -7,24 +7,18 @@ import java.time.Instant;
 
 public class DownloadedDocDTO {
     private final Document downloadedData;
-    private final boolean blockedByRobotsTxt;
     private final Instant fetchTime;
 
     private final Website site;
 
-    public DownloadedDocDTO(Website site, Document doc, boolean blockedByRobotsTxt, Instant fetchTime) {
+    public DownloadedDocDTO(Website site, Document doc, Instant fetchTime) {
         this.site = site;
         this.downloadedData =doc;
-        this.blockedByRobotsTxt = blockedByRobotsTxt;
         this.fetchTime = fetchTime;
     }
 
     public Document getDownloadedData() {
         return downloadedData;
-    }
-
-    public boolean isBlockedByRobotsTxt() {
-        return blockedByRobotsTxt;
     }
 
     public Instant getFetchTime() {

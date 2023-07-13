@@ -10,7 +10,7 @@ public class CrawlerFilters {
 
 
     //If enabled the crawler won't touch any other sites that it discovers and will only crawl the website mentioned in the entryUrls
-    public static final Boolean siteRestrictedTestMode = Boolean.TRUE;
+    public static final Boolean siteRestrictedTestMode = Boolean.FALSE;
 
     public static final Collection<String> allowedUrls = Arrays.asList("https://www.tuebingen.de/", "https://yannick-huber.de", "https://tue.schulamt-bw.de/Startseite", "http://www.schulamt-tuebingen.de/", "https://www.figurentheater-tuebingen.de", "https://www.landestheater-tuebingen.de/", "https://www.zimmertheater-tuebingen.de/", "http://www.harlekintheater.de/", "http://www.theater-teo-tiger.de/", "https://www.vorstadttheater.de/");
 

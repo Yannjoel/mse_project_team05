@@ -38,16 +38,18 @@ public class DownloadedWebsiteToRamRunner implements Runnable {
             LOG.debug("fetching " + siteUrl);
             //download website
             Document doc = null;
-            boolean blockedByRobotsTxt = true;
             if (getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(site)) {
-                blockedByRobotsTxt = false;
+                site.setBlockedByRobotsTxt(false);
                 doc = HttpRequestHelper.downloadWebsiteContentForUrl(siteUrl);
+                if (doc == null) {
+                    site.setRelevantForSearch(false);
+                    site.setFailedToDownload(true);
+                }
+            }else{
+                site.setRelevantForSearch(false);
+                site.setBlockedByRobotsTxt(true);
             }
-            site.setBlockedByRobotsTxt(blockedByRobotsTxt);
-            DownloadedDocDTO downloadDoc = new DownloadedDocDTO(site, doc, blockedByRobotsTxt, Instant.now());
-            if (doc == null) {
-                continue;
-            }
+            DownloadedDocDTO downloadDoc = new DownloadedDocDTO(site, doc, Instant.now());
             downloadedDocsToProcessCopy.add(downloadDoc);
             try {
                 Thread.sleep(waitTime);

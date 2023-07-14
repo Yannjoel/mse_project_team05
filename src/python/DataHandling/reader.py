@@ -1,12 +1,17 @@
 import sqlite3
+import mysql.connector as database
 import numpy as np
 
 
 class Reader:
     
         def __init__(self):
-            self.connection = sqlite3.connect("database.db")
+            self.connection = database.connect(
+                 user='python', password='python', host="localhost", database="mse_project")
             self.cursor = self.connection.cursor()
+            self.body = self.get_bodies()
+            self.title = self.get_titles()
+            self.url = self.get_urls()
     
         def get_all_data(self):
             sql_statement = 'SELECT * FROM website'
@@ -19,13 +24,30 @@ class Reader:
             return np.array(self.cursor.fetchall()).flatten()
         
         def get_urls(self):
-            sql_statement = 'SELECT url FROM website'
+            sql_statement = 'SELECT url FROM website WHERE relevantForSearch = 1'
             self.cursor.execute(sql_statement)
             return self.cursor.fetchall()
         
         def get_titles(self):
-            sql_statement = 'SELECT title FROM website'
+            sql_statement = 'SELECT title FROM website WHERE relevantForSearch = 1'
             self.cursor.execute(sql_statement)
             return self.cursor.fetchall()
         
+        def get_bodies(self):
+            sql_statement = 'SELECT body FROM website WHERE relevantForSearch = 1'
+            self.cursor.execute(sql_statement)
+            return self.cursor.fetchall()
         
+        def get_documents(self):  # Frage: wollen wir das so? oder wie?
+            sql_statement = 'SELECT title, body FROM website'
+            self.cursor.execute(sql_statement)
+            return self.cursor.fetchall()
+        
+
+if __name__=='__main__':
+    reader = Reader()
+    #corpus = reader.get_corpus()
+    urls = reader.get_urls()
+    titles = reader.get_titles()
+    bodies = reader.get_bodies()
+    print(titles)

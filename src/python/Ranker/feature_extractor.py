@@ -1,7 +1,8 @@
-from DataHandling.reader import Reader
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
+
+
+from DataHandling.reader import Reader
 from tfidf import TfIdf
 from bmtf import BM25
 
@@ -68,5 +69,4 @@ class Features:
 
 
 if __name__ == "__main__":
-    # docs = Reader()
     features = Features(query="hello Tübingen")

@@ -25,8 +25,8 @@ class TfIdf:
             return 0
         
 
-    def get_similarity_scores(self, query):
+    def get_scores(self, query, docs):
         query_vector = self.vectorizer.transform([query])
-        doc_vectors = self.vectorizer.transform(self.corpus)
+        doc_vectors = self.vectorizer.transform(docs)
         scores = cosine_similarity(query_vector, doc_vectors)[0]
         return scores

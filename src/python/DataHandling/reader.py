@@ -25,22 +25,22 @@ class Reader:
         def get_urls(self):
             sql_statement = 'SELECT url FROM website WHERE relevantForSearch = 1'
             self.cursor.execute(sql_statement)
-            return self.cursor.fetchall()
+            return np.array(self.cursor.fetchall()).flatten()
         
         def get_titles(self):
             sql_statement = 'SELECT title FROM website WHERE relevantForSearch = 1'
             self.cursor.execute(sql_statement)
-            return self.cursor.fetchall()
+            return np.array(self.cursor.fetchall()).flatten()
         
         def get_bodies(self):
             sql_statement = 'SELECT body FROM website WHERE relevantForSearch = 1'
             self.cursor.execute(sql_statement)
-            return self.cursor.fetchall()
+            return np.array(self.cursor.fetchall()).flatten()
         
         def get_documents(self):  # Frage: wollen wir das so? oder wie?
             sql_statement = 'SELECT title, body FROM website'
             self.cursor.execute(sql_statement)
-            return self.cursor.fetchall()
+            return np.array(self.cursor.fetchall()).flatten()
         
 
 if __name__=='__main__':

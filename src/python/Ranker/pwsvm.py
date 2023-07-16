@@ -60,7 +60,7 @@ class RankSVM(svm.LinearSVC):
         else:
             raise ValueError("Must call fit() prior to predict()")
 
-    def score(self, X, y):
+    def get_scores(self, X, y):
         """
         Because we transformed into a pairwise problem, chance level is at 0.5
         """

@@ -47,4 +47,5 @@ derby.log
 
 # Data
 /data/**
+/MSLR-WEB10K/**
 

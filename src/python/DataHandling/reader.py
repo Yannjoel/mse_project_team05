@@ -1,4 +1,3 @@
-import sqlite3
 import mysql.connector as database
 import numpy as np
 

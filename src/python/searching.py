@@ -1,6 +1,6 @@
 from Ranker.bmtf import BM25
-from Ranker.tfidf import TFIDF
-from Ranker.pwsvm import PWSVM
+from Ranker.tfidf import TfIdf
+from Ranker.pwsvm import RankSVM
 from Ranker.neuralnetwork import NeuralNetwork
 
 def searcher(query, df, ranker_str='bm25'):
@@ -12,11 +12,13 @@ def searcher(query, df, ranker_str='bm25'):
     if ranker_str == 'bm25':
         ranker = BM25()
     elif ranker_str == 'tfidf':
-        ranker = TFIDF()
+        ranker = TfIdf()
     elif ranker_str == 'pwsvm':
-        ranker = PWSVM()
+        ranker = RankSVM()
+        ranker.load_model()
     elif ranker_str == 'nn':
         ranker = NeuralNetwork()
+        ranker.load_model()
     else:
         raise ValueError('Invalid ranker_str: {}'.format(ranker_str))
     
@@ -25,3 +27,7 @@ def searcher(query, df, ranker_str='bm25'):
 
 
     return results
+
+
+if __name__ == '__main__':
+    print('imports successful')

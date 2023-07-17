@@ -1,7 +1,8 @@
+__pycache__/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
-!**/src/test/**/target/
+!**/src/test/**/target/ 
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -34,6 +35,7 @@ build/
 
 ### VS Code ###
 .vscode/
+.venv/**
 
 ### Mac OS ###
 .DS_Store
@@ -44,3 +46,8 @@ build/
 results.txt
 derby.log
 /.profileconfig.json
+
+# Data
+/data/**
+/MSLR-WEB10K/**
+

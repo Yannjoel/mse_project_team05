@@ -74,17 +74,3 @@ class RankSVM(svm.LinearSVC):
     def load(self, model_path='svm.joblib'):
         self.model = load(model_path)
         return self.model
-
-
-if __name__ == '__main__':
-    # load training and test set
-    train_data = pd.read_csv('MSLR-WEB10K/Fold1/train.txt', delimiter=" ", nrows=500, header=None)
-    # drop last column and second colum since they are not needed
-    train_data.drop(columns=[1, 138], inplace=True)
-    train_data.iloc[:, 1:] = train_data.iloc[:, 1:].applymap(lambda x: x.split(":", 1)[-1])
-    y_train = train_data[0].astype(float)
-    X_train = train_data.drop(columns=0).values.astype(float)
-
-    rank_svm = RankSVM().fit(X_train, y_train)
-    print('Model fitted')
-    print(rank_svm.score(X_train, y_train))

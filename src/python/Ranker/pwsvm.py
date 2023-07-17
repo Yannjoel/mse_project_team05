@@ -42,7 +42,7 @@ class RankSVM(svm.LinearSVC):
         super(RankSVM, self).fit(X_trans, y_trans)
         return self
 
-    def predict(self, X):
+    def get_scores(self, X):
         """
         Predict an ordering on X. For a list of n samples, this method
         returns a list from 0 to n-1 with the relative order of the rows of X.
@@ -60,7 +60,7 @@ class RankSVM(svm.LinearSVC):
         else:
             raise ValueError("Must call fit() prior to predict()")
 
-    def get_scores(self, X, y):
+    def get_accuracy(self, X, y):
         """
         Because we transformed into a pairwise problem, chance level is at 0.5
         """

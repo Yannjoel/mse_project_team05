@@ -12,17 +12,19 @@ class NeuralNetwork(nn.Module):
         self.fc1 = nn.Linear(n_features, n_hidden)
         self.fc2 = nn.Linear(n_hidden, 1)
 
-    def get_scores(self, x):
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x
+    def get_scores(self, X, **kwargs):
+        """returns scores for docs"""
+        X = torch.tensor(X, dtype=torch.float32)
+        X = F.relu(self.fc1(X))
+        X = self.fc2(X)
+        return X.detach().numpy().ravel()
     
-    def save(self, model_path='model.pth'):
+    def save(self, model_path='models/nn.pth'):
         torch.save(self, model_path)
         print('model saved in ', model_path)
 
     @staticmethod
-    def load(model_path='model.pth'):
+    def load(model_path='models/nn.pth'):
         return torch.load(model_path)
     
     def train_loop(self, data, targets, loss_fn, optimizer):

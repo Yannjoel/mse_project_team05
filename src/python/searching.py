@@ -1,9 +1,11 @@
 import numpy as np
-from Ranker.bmtf import BM25
-from Ranker.tfidf import TfIdf
-from Ranker.feature_extractor import Features
 import pickle
 import pandas as pd
+
+from Ranker.bmtf import BM25
+from Ranker.tfidf import TfIdf
+from Ranker.neuralnetwork import NeuralNetwork
+from Ranker.feature_extractor import Features
 from DataHandling.db_reader import Reader
 
 def searcher(query, df, ranker_str='bm25'):
@@ -15,17 +17,15 @@ def searcher(query, df, ranker_str='bm25'):
     if ranker_str == 'bm25':
         ranker = BM25()
     elif ranker_str == 'tfidf':
-        ranker = TfIdf()
+        ranker = TfIdf(corpus=df.values.ravel())
     elif ranker_str == 'pwsvm':
         ranker = pickle.load(open('src/python/models/svm.pkl', 'rb'))
     elif ranker_str == 'nn':
-        raise NotImplementedError('Neural Network not implemented yet')
-        #ranker = NeuralNetwork()
-        #ranker.load_model()
+        ranker = NeuralNetwork.load('src/python/models/nn.pth')
     else:
         raise ValueError('Invalid ranker_str: {}'.format(ranker_str))
     
-    X = Features(query='europe', url=df['url'], title=df['title'], body=df['body']).get_features()
+    X = Features(query=query, url=df['url'], title=df['title'], body=df['body']).get_features()
     indices = ranker.get_scores(query=query, docs=df['body'], X=X).argsort()[::-1][:10]
     results = df[['url', 'title']].iloc[indices].values
 
@@ -42,4 +42,4 @@ if __name__ == '__main__':
     urls = r.get_urls()
 
     df = pd.DataFrame({'title': titles, 'body': bodies, 'url': urls})
-    print(searcher('europe', df, ranker_str='pwsvm'))
+    print(searcher('Computer Science', df, ranker_str='nn'))

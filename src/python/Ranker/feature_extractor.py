@@ -23,7 +23,7 @@ class Features:
                 features = pd.concat(
                     [features, self.get_features_for_docs(docs, name)], axis=1
                 )
-        return features
+        return features.values
 
     def get_features_for_docs(self, docs, name):
         """helper function for get_features, returns features for a single document type"""

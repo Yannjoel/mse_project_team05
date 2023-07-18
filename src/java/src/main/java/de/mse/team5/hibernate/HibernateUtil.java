@@ -23,9 +23,6 @@ public class HibernateUtil {
 
 
     public static SessionFactory getSessionFactory() {
-        //Set save location of the db file to be contained within the maven project
-        Properties props = System.getProperties();
-
         if (sessionFactory == null) {
             try {
                 // Create registry

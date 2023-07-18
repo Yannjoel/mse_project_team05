@@ -6,7 +6,7 @@ class BM25:
         self.k = k
         self.b = b
 
-    def get_scores(self, query, docs):
+    def get_scores(self, query, docs, **kwargs):
         """returns bm25 of doc"""
         avgdl = np.mean([len(doc.split()) for doc in docs])
         N = len(docs)

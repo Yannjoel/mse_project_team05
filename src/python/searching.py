@@ -1,7 +1,10 @@
+import numpy as np
 from Ranker.bmtf import BM25
 from Ranker.tfidf import TfIdf
-from Ranker.pwsvm import RankSVM
-from Ranker.neuralnetwork import NeuralNetwork
+from Ranker.feature_extractor import Features
+import pickle
+import pandas as pd
+from DataHandling.db_reader import Reader
 
 def searcher(query, df, ranker_str='bm25'):
 
@@ -14,20 +17,29 @@ def searcher(query, df, ranker_str='bm25'):
     elif ranker_str == 'tfidf':
         ranker = TfIdf()
     elif ranker_str == 'pwsvm':
-        ranker = RankSVM()
-        ranker.load_model()
+        ranker = pickle.load(open('src/python/models/svm.pkl', 'rb'))
     elif ranker_str == 'nn':
-        ranker = NeuralNetwork()
-        ranker.load_model()
+        raise NotImplementedError('Neural Network not implemented yet')
+        #ranker = NeuralNetwork()
+        #ranker.load_model()
     else:
         raise ValueError('Invalid ranker_str: {}'.format(ranker_str))
     
-    scores = ranker.get_scores(query=query, docs=df['body'])
-    results = df[['url', 'title']].iloc[scores.argsort()[::-1][:10]].values
+    X = Features(query='europe', url=df['url'], title=df['title'], body=df['body']).get_features()
+    indices = ranker.get_scores(query=query, docs=df['body'], X=X).argsort()[::-1][:10]
+    results = df[['url', 'title']].iloc[indices].values
 
+    # return results, scores as a numpy array
 
-    return results
+    return np.hstack([results, indices.reshape(-1, 1)])
 
 
 if __name__ == '__main__':
     print('imports successful')
+    r = Reader()
+    titles = r.get_titles()
+    bodies = r.get_bodies()
+    urls = r.get_urls()
+
+    df = pd.DataFrame({'title': titles, 'body': bodies, 'url': urls})
+    print(searcher('europe', df, ranker_str='pwsvm'))

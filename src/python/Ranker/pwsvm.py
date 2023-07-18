@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn import svm, linear_model
 import itertools
-from joblib import dump, load
 
 
 def transform_pairwise(X, y):
@@ -42,7 +41,7 @@ class RankSVM(svm.LinearSVC):
         super(RankSVM, self).fit(X_trans, y_trans)
         return self
 
-    def get_scores(self, X):
+    def get_scores(self, X, **kwargs):
         """
         Predict an ordering on X. For a list of n samples, this method
         returns a list from 0 to n-1 with the relative order of the rows of X.
@@ -56,7 +55,7 @@ class RankSVM(svm.LinearSVC):
             the rows in X.
         """
         if hasattr(self, 'coef_'):
-            np.argsort(np.dot(X, self.coef_.T))
+            return np.argsort(np.dot(X, self.coef_.T).ravel())
         else:
             raise ValueError("Must call fit() prior to predict()")
 
@@ -66,11 +65,3 @@ class RankSVM(svm.LinearSVC):
         """
         X_trans, y_trans = transform_pairwise(X, y)
         return np.mean(super(RankSVM, self).predict(X_trans) == y_trans)
-    
-    def save(self, model_path='svm.joblib'):
-        dump(self.model, model_path) 
-        print('model saved in ', model_path)
-
-    def load(self, model_path='svm.joblib'):
-        self.model = load(model_path)
-        return self.model

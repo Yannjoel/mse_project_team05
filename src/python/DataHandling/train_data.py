@@ -11,7 +11,7 @@ def load_data(
     data = pd.read_csv(path, delimiter=" ", nrows=nrows, header=None)
     data.drop(columns=[1, 138], inplace=True)
     data.iloc[:, 1:] = data.iloc[:, 1:].applymap(lambda x: x.split(":", 1)[-1])
-    y = data[0].astype(float)
+    y = data[0].astype(float).to_numpy()
     X = data.drop(columns=0).values.astype(float)
 
     # extract features from data

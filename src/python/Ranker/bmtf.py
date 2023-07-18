@@ -2,7 +2,7 @@ import numpy as np
 
 
 class BM25:
-    def __init__(self, k=1.5, b=0.75):
+    def __init__(self, k=1.2, b=0.75):
         self.k = k
         self.b = b
 

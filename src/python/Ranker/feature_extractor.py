@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 
 from DataHandling.db_reader import Reader
@@ -13,6 +14,7 @@ class Features:
         self.url = kwargs.get("url", None)
         self.title = kwargs.get("title", None)
         self.body = kwargs.get("body", None)
+        
 
 
     def get_features(self):
@@ -22,8 +24,10 @@ class Features:
             if docs is not None:
                 features = pd.concat(
                     [features, self.get_features_for_docs(docs, name)], axis=1
-                )
-        return features.values
+                )   
+        scaler = StandardScaler()
+        features = scaler.fit_transform(X=features)
+        return features
 
     def get_features_for_docs(self, docs, name):
         """helper function for get_features, returns features for a single document type"""
@@ -33,6 +37,7 @@ class Features:
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)
         features[name + "_idf"] = tfidf.get_idf(self.query)
         features[name + "_vsm"] = tfidf.get_scores(self.query, docs)
+
         return features
         
     # functions only dependent on  single doc

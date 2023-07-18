@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 
 def load_data(
@@ -16,4 +17,6 @@ def load_data(
 
     # extract features from data
     X = X[:, feature_indices]
+    X = StandardScaler().fit_transform(X)
+
     return X, y

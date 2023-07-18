@@ -7,7 +7,6 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Date;
@@ -18,7 +17,6 @@ import java.util.Collection;
         @Index(name = "host_idx", columnList = "hostUrl")
 })
 public class Website {
-
     private static final Logger LOG = LogManager.getLogger(Website.class);
 
     @Id
@@ -91,7 +89,8 @@ public class Website {
     public URL getUrlObj() {
         if (!this.calculatedUrlObj) {
             try {
-                this.urlObj = URI.create(this.url).toURL();
+                URL urlObj = new URL(this.url);
+                this.urlObj = urlObj;
             } catch (MalformedURLException e) {
                 LOG.warn("Malformed url " + this.url, e);
                 this.urlObj = null;

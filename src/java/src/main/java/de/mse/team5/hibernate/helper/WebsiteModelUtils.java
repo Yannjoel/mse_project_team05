@@ -16,7 +16,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
@@ -36,12 +35,12 @@ public class WebsiteModelUtils {
         Set<Website> outgoingLinks = new HashSet<>();
         Elements linkHtmlElements = doc.select("a");
         linkHtmlElements.forEach(link -> {
-            if (!linkMatchesFilter(link)){
+            if (!linkMatchesFilter(link)) {
                 return;
             }
-            String linkUrl = formatLinkUrl(link.attr("href"), currentFullUrl);
-            if(linkShouldBeCrawled(linkUrl)) {
-                Website outgoingLink = getOrCreateWebsite(linkUrl, currentFullUrl, link.text());
+            String linkUrl = formatLinkUrl(link.attr("abs:href"), currentFullUrl);
+            if (linkShouldBeCrawled(linkUrl)) {
+                Website outgoingLink = getOrCreateWebsite(link.attr("abs:href"), currentFullUrl);
                 if (outgoingLink != null) {
                     outgoingLinks.add(outgoingLink);
                 }
@@ -50,19 +49,7 @@ public class WebsiteModelUtils {
         return outgoingLinks;
     }
 
-    /**
-     * @param href must be an well formed absolute url
-     * @return A new website model that can be saved to the db or the existing model in the db for the given url
-     */
-    public Website getOrCreateWebsite(String href) {
-         return getOrCreateWebsite(href, null, null);
-    }
-
     public Website getOrCreateWebsite(String href, String currentFullUrl) {
-        return getOrCreateWebsite(href, currentFullUrl, null);
-    }
-
-    public Website getOrCreateWebsite(String href, String currentFullUrl, String linkText) {
         String linkUrl = formatLinkUrl(href, currentFullUrl);
         Website website = null;
 
@@ -71,8 +58,7 @@ public class WebsiteModelUtils {
             if (website == null) {
                 website = new Website();
                 website.setUrl(linkUrl);
-                //ToDO link.setLinkText(linkText);
-                instertWebsiteIntoDb(website);
+                insertWebsiteIntoDb(website);
             }
         }
         return website;
@@ -85,30 +71,31 @@ public class WebsiteModelUtils {
      * @return formatted link
      */
     private static String formatLinkUrl(String linkUrl, String currentFullUrl) {
-        if(StringUtils.isEmpty(linkUrl)){
+        if (StringUtils.isEmpty(linkUrl)) {
             return null;
         }
         String formattedURL = null;
         try {
             //append current url if link is relative or anchor link
             if (StringUtils.startsWith(linkUrl, "/") || StringUtils.startsWith(linkUrl, "#")) {
-                URL currentUrl = URI.create(currentFullUrl).toURL();
+                URL currentUrl = new URL(currentFullUrl);
                 String currentPathPrefix = currentUrl.getProtocol() + "://" + currentUrl.getHost();
                 linkUrl = currentPathPrefix + linkUrl;
             }
-            URL url = URI.create(linkUrl).toURL();
+            URL url = new URL(linkUrl);
             formattedURL = formatLinkUrl(url);
-            //ToDo: check if we need to also focus on parameters
-        } catch (IllegalArgumentException e) {
-            LOG.warn("malformed url " + linkUrl, e);
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
             LOG.warn("malformed url " + linkUrl, e);
         }
         return formattedURL;
     }
 
     private static String formatLinkUrl(URL url) {
-        return url.getProtocol() + "://" + url.getHost() + url.getFile();
+        String formattedUrl = url.getProtocol() + "://" + url.getHost() + url.getFile();
+        if(StringUtils.isNotEmpty(url.getQuery())){
+            formattedUrl += "?" + url.getQuery();
+        }
+        return formattedUrl;
     }
 
     /**
@@ -122,7 +109,7 @@ public class WebsiteModelUtils {
         if (!link.hasAttr("href")) {
             return false;
         }
-        return StringUtils.startsWith(link.attr("href"), "http") || StringUtils.startsWith(link.attr("href"), "/");
+        return StringUtils.startsWith(link.attr("abs:href"), "http") || StringUtils.startsWith(link.attr("abs:href"), "/");
     }
 
 
@@ -130,7 +117,7 @@ public class WebsiteModelUtils {
         if (!fitsCrawlFilter(urlToCheck))
             return false;
         if (StringUtils.length(urlToCheck) > 2048) {
-            LOG.info("Skipping too long url: " + urlToCheck);
+            LOG.debug("Skipping too long url: " + urlToCheck);
             return false;
         }
         return true;
@@ -147,11 +134,13 @@ public class WebsiteModelUtils {
         }
     }
 
-    public void instertWebsiteIntoDb(Website website) {
+    public void insertWebsiteIntoDb(Website website) {
         try {
-            dbSession.getTransaction().begin();
-            dbSession.insert(website);
-            dbSession.getTransaction().commit();
+            synchronized (dbSession) {
+                dbSession.getTransaction().begin();
+                dbSession.insert(website);
+                dbSession.getTransaction().commit();
+            }
         } catch (HibernateException e) {
             LOG.warn("Failed to save website \"" + website.getUrl() + "\" to db due to ", e);
         }
@@ -174,10 +163,6 @@ public class WebsiteModelUtils {
         return existingWebsite;
     }
 
-    public Collection<Website> getUncrawledWebsites(int maxNrOfResults) {
-        return getUncrawledWebsites(maxNrOfResults, null);
-    }
-
     public Collection<Website> getUncrawledWebsites(int maxNrOfResults, Set<String> hostsToExclude) {
         CriteriaBuilder cb = dbSession.getCriteriaBuilder();
         CriteriaQuery<Website> cr = cb.createQuery(Website.class);
@@ -188,8 +173,8 @@ public class WebsiteModelUtils {
 
         Predicate combinedPredicate = cb.and(notCrawled, firstNamePredicate);
 
-        if(hostsToExclude != null && !hostsToExclude.isEmpty()){
-            Predicate excludeHosts = root.get("hostUrl").in(hostsToExclude).not();
+        if (hostsToExclude != null && !hostsToExclude.isEmpty()) {
+            Predicate excludeHosts = cb.not(root.get("hostUrl").in(hostsToExclude));
             combinedPredicate = cb.and(combinedPredicate, excludeHosts);
         }
 
@@ -198,11 +183,9 @@ public class WebsiteModelUtils {
         Query<Website> query = dbSession.createQuery(cr);
         query.setMaxResults(maxNrOfResults);
 
-        return query.getResultList();
-    }
-
-    public Collection<Website> getLongestNotCrawledWebsites(int maxNrOfResults) {
-        return getLongestNotCrawledWebsites(maxNrOfResults, null);
+        List<Website> results = query.getResultList();
+        LOG.debug("queued " + results.stream().map(Website::getUrl).toList());
+        return results;
     }
 
     public Collection<Website> getLongestNotCrawledWebsites(int maxNrOfResults, Set<String> hostToExclude) {
@@ -212,7 +195,7 @@ public class WebsiteModelUtils {
 
         Predicate selectionPredicates = cb.isFalse(root.get("stagedForCrawling"));
 
-        if(hostToExclude != null && !hostToExclude.isEmpty()){
+        if (hostToExclude != null && !hostToExclude.isEmpty()) {
             Predicate excludeHosts = root.get("hostUrl").in(hostToExclude).not();
             selectionPredicates = cb.and(selectionPredicates, excludeHosts);
         }

@@ -25,8 +25,9 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toSet;
 
 public class MultithreadedCrawler {
-    private static final int MAX_CRAWL_SCHEDULE_BATCH_SIZE = 100;
-    private static final int MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL = 5;
+    private static final int MAX_CRAWL_SCHEDULE_BATCH_SIZE = 250;
+    private static final int MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL = 10;
+    private static final int MAX_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL = 20;
     private static final String TRUSTSTORE_NAME = "mozilla_trustStore.jks";
 
     private MultithreadedCrawler() {
@@ -34,17 +35,23 @@ public class MultithreadedCrawler {
     }
 
     public static final Logger LOG = LogManager.getLogger(MultithreadedCrawler.class);
-    public static final Collection<String> entryUrls = Arrays.asList("https://uni-tuebingen.de/en/");
+    public static final Collection<String> entryUrls = Arrays.asList("https://uni-tuebingen.de/en/",
+            "https://www.reddit.com/r/Tuebingen/");
     private final Set<String> currentlyCrawledHosts = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<Website>> hostSpecificLinksToCrawlSet = new ConcurrentHashMap<>();
     private final Set<DownloadedDocDTO> downloadedWebsitesToProcess = ConcurrentHashMap.newKeySet();
 
     ThreadPoolExecutor websiteProcessingService = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
-    ThreadPoolExecutor websiteFetchingService = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+    ThreadPoolExecutor websiteFetchingService = (ThreadPoolExecutor) Executors.newFixedThreadPool(20);
 
     public static void main(String[] args) throws InterruptedException {
-        MultithreadedCrawler crawler = new MultithreadedCrawler();
-        crawler.crawl();
+        try {
+            MultithreadedCrawler crawler = new MultithreadedCrawler();
+            crawler.crawl();
+        }
+        finally {
+            HibernateUtil.shutdown();
+        }
     }
 
     public void crawl() throws InterruptedException {
@@ -57,31 +64,42 @@ public class MultithreadedCrawler {
 
         Duration waitTime = Duration.of(1, ChronoUnit.SECONDS);
 
+        int updateCounter = 0;
         while (crawlingNotFinishedOrStopped()) {
-            if(hostSpecificLinksToCrawlSet.isEmpty()){
-                scheduleMoreWebsitesForCrawling();
-            }
+            updateCounter ++;
+            if(downloadedWebsitesToProcess.size() < 100 && currentlyCrawledHosts.size() < MAX_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL) {
+                if (hostSpecificLinksToCrawlSet.isEmpty()) {
+                    scheduleMoreWebsitesForCrawling();
+                }
 
-            if(hostSpecificLinksToCrawlSet.keySet().size() > MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL){
-                scheduleMoreWebsitesFromOtherHostsForCrawling();
-            }
+                if (hostSpecificLinksToCrawlSet.keySet().size() < MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL) {
+                    scheduleMoreWebsitesFromOtherHostsForCrawling();
+                }
 
-            if (emptySlotInCrawlerPool() && moreWebsitesAvailableToCrawl()) {
-                fetchMoreWebsites();
+                if (emptySlotInCrawlerPool() && moreWebsitesAvailableToCrawl()) {
+                    fetchMoreWebsites();
+                }
             }
             if (unprocessedDownloadedWebsitesAvailable()) {
                 addWebsiteToAsynchronousProcessing();
             }
-
             //Only check in time intervals
             Thread.sleep(waitTime);
+            //LOG status
+            if(updateCounter >= 60) {
+                LOG.info("Currently crawled hosts (" + currentlyCrawledHosts.size() + ")=" + currentlyCrawledHosts);
+                LOG.info("Currently crawled number of sites to crawl=" + hostSpecificLinksToCrawlSet.values().size());
+                LOG.info("downloadedWebsitesToProcess Count =" + downloadedWebsitesToProcess.size());
+                LOG.info("Staged process task " + websiteProcessingService.getQueue().size());
+                updateCounter=0;
+            }
         }
         LOG.info("Finished crawling");
     }
 
     /**
      * The JVM doesn't know a lot of important root certificates by default - we therefor use the current trusted certificate List from Mozialla, that is for example included in Firefox
-     * See List of installed certs at https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt
+     * See List of installed certs at <a href="https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt">...</a>
      */
     private void updateSSLCertsToMozillaCerts() {
         String truststorePath = System.getProperty("user.dir") + "/" + TRUSTSTORE_NAME;
@@ -111,10 +129,10 @@ public class MultithreadedCrawler {
             //re-crawl old data if there are no new links
             if(websites.size() < MAX_CRAWL_SCHEDULE_BATCH_SIZE){
                 int diff= MAX_CRAWL_SCHEDULE_BATCH_SIZE-websites.size();
-                Collection<Website> oldWebsites = websiteUtils.getLongestNotCrawledWebsites(MAX_CRAWL_SCHEDULE_BATCH_SIZE, hostsToExclude);
+                Collection<Website> oldWebsites = websiteUtils.getLongestNotCrawledWebsites(diff, hostsToExclude);
                 websites.addAll(oldWebsites);
             }
-            websites.stream().forEach(site -> {
+            websites.forEach(site -> {
                 site.setStagedForCrawling(true);
                 websiteUtils.updateWebsiteInDb(site);
             });
@@ -124,8 +142,7 @@ public class MultithreadedCrawler {
 
     }
     private void scheduleMoreWebsitesForCrawling() {
-        Set<String> hostsToExclude = null;
-        scheduleMoreWebsitesForCrawlingExcludingHosts(hostsToExclude);
+        scheduleMoreWebsitesForCrawlingExcludingHosts(null);
     }
 
 
@@ -191,16 +208,20 @@ public class MultithreadedCrawler {
      * Converts all downloaded but not yet processed Websites to a Website Object and saves it to the db
      */
     private void addWebsiteToAsynchronousProcessing() {
+        //only run if there are multiple websites to queue to prevent overhead
+        if(downloadedWebsitesToProcess.size() < 25){
+            return;
+        }
         Runnable task;
         synchronized (downloadedWebsitesToProcess) {
             //only work on part of the elements if list is too big
             List<DownloadedDocDTO> downloadedWebsitesToProcessCopy = new ArrayList<>(downloadedWebsitesToProcess);
-            if(downloadedWebsitesToProcess.size() > 50) {
-                downloadedWebsitesToProcessCopy = downloadedWebsitesToProcessCopy.subList(0,49);
+            if(downloadedWebsitesToProcess.size() > 150) {
+                downloadedWebsitesToProcessCopy = downloadedWebsitesToProcessCopy.subList(0,149);
             }
             LOG.debug("Starting new batch processing for urls: " + Arrays.toString(downloadedWebsitesToProcessCopy.stream().map(DownloadedDocDTO::getSite).map(Website::getUrl).toArray()));
             task = new SaveDownloadedWebsiteToDbRunnable(downloadedWebsitesToProcessCopy);
-            downloadedWebsitesToProcess.removeAll(downloadedWebsitesToProcessCopy);
+            downloadedWebsitesToProcessCopy.forEach(downloadedWebsitesToProcess::remove);
         }
         websiteProcessingService.execute(task);
     }

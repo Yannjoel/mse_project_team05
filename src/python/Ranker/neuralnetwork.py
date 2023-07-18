@@ -12,12 +12,11 @@ class NeuralNetwork(nn.Module):
         self.fc1 = nn.Linear(n_features, n_hidden)
         self.fc2 = nn.Linear(n_hidden, 1)
 
-    def get_scores(self, X, **kwargs):
+    def get_scores(self, X: torch.Tensor, **kwargs):
         """returns scores for docs"""
-        X = torch.tensor(X, dtype=torch.float32)
         X = F.relu(self.fc1(X))
         X = self.fc2(X)
-        return X.detach().numpy().ravel()
+        return X
     
     def save(self, model_path='models/nn.pth'):
         torch.save(self, model_path)
@@ -49,7 +48,7 @@ class NeuralNetwork(nn.Module):
 
         return loss.item()
 
-    def test_loop(self, data, targets, loss):
+    def test_loop(self, data, targets, loss_fn):
         # create dataloader
         data = TensorDataset(data, targets)
         dataloader = DataLoader(data, batch_size=32, shuffle=True)
@@ -59,7 +58,7 @@ class NeuralNetwork(nn.Module):
         with torch.no_grad():
             for X, y in dataloader:
                 output = self.get_scores(X)
-                test_loss += loss(output, y)
+                test_loss += loss_fn(output, y)
 
         test_loss /= len(dataloader)
         print(f"Test Error: Avg loss: {test_loss:>8f} \n")

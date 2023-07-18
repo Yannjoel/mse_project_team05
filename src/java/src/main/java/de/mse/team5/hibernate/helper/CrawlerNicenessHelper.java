@@ -4,15 +4,17 @@ import com.panforge.robotstxt.Grant;
 import com.panforge.robotstxt.RobotsTxt;
 import de.mse.team5.hibernate.model.Website;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CrawlerNicenessHelper {
@@ -38,7 +40,7 @@ public class CrawlerNicenessHelper {
 
 
     public boolean isUrlAllowedByRobotsTxt(Website link) {
-        if (link.getHostUrl() == null) {
+        if (StringUtils.isEmpty(link.getHostUrl())) {
             //we don't want to crawl links without a valid url
             return false;
         }
@@ -76,7 +78,7 @@ public class CrawlerNicenessHelper {
             robotsTxt = cachedRobotsTxt.get(host);
         } else {
             String robotsTxtUrl = host + "/robots.txt";
-            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteContentForUrl(robotsTxtUrl);
+            Document robotsTxtWebsite = HttpRequestHelper.downloadWebsiteContentForUrl(robotsTxtUrl, Duration.ofSeconds(1));
             if (robotsTxtWebsite != null) {
                 InputStream inputStream = IOUtils.toInputStream(robotsTxtWebsite.body().text(), StandardCharsets.UTF_8);
                 try {
@@ -86,7 +88,44 @@ public class CrawlerNicenessHelper {
                 }
                 this.cachedRobotsTxt.put(host, robotsTxt);
             }
+            else{
+                RobotsTxt defaultRobotTxt = getDefaultCrawlDelay();
+                this.cachedRobotsTxt.put(host, defaultRobotTxt);
+            }
         }
         return robotsTxt;
+    }
+
+    /**
+     * Get a default crawl delay of 1 sec and access denied for every path
+     * @return RobotsTxt returning the described values
+     */
+    private RobotsTxt getDefaultCrawlDelay() {
+        return new RobotsTxt() {
+            @Override
+            public boolean query(String s, String s1) {
+                return false;
+            }
+
+            @Override
+            public Integer getCrawlDelay() {
+                return 1;
+            }
+
+            @Override
+            public String getHost() {
+                return null;
+            }
+
+            @Override
+            public List<String> getSitemaps() {
+                return null;
+            }
+
+            @Override
+            public List<String> getDisallowList(String s) {
+                return null;
+            }
+        };
     }
 }

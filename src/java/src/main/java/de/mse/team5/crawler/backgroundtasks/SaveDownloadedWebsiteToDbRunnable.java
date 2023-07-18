@@ -16,7 +16,6 @@ import java.util.*;
 
 public class SaveDownloadedWebsiteToDbRunnable implements Runnable {
     private static final String TUEBINGEN = "TÜBINGEN";
-    private static final String[] EN_LANGUAGE_CODES = {"en", "en-gb", "en-us", "en-au", "uk", "en-uk", "en-029", "en-BZ", "en-ca"};
     private final Collection<DownloadedDocDTO> downloadedWebsitesToProcess;
 
     private final LanguageDetector detector;
@@ -31,7 +30,7 @@ public class SaveDownloadedWebsiteToDbRunnable implements Runnable {
 
     @Override
     public void run() {
-        try(StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
+        try (StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
             WebsiteModelUtils websiteUtils = new WebsiteModelUtils(dbSession);
 
             for (DownloadedDocDTO docDTO : downloadedWebsitesToProcess) {
@@ -44,8 +43,13 @@ public class SaveDownloadedWebsiteToDbRunnable implements Runnable {
         Website website = docDTO.getSite();
         Document doc = docDTO.getDownloadedData();
 
-        if (doc != null && isSiteRelevantForSearch(doc)) {
-            addDocDataToWebsite(website, doc, websiteUtils);
+        if (doc != null && siteContainsTuebingen(doc)) {
+            if (isEnglish(doc)) {
+                addDocDataToWebsite(website, doc, websiteUtils);
+            } else {
+                website.setRelevantForSearch(false);
+            }
+            addOutgoingLinksForWebsite(website, doc, websiteUtils);
         } else {
             website.setRelevantForSearch(false);
         }
@@ -56,48 +60,51 @@ public class SaveDownloadedWebsiteToDbRunnable implements Runnable {
 
     private void addDocDataToWebsite(Website website, Document doc, WebsiteModelUtils websiteUtils) {
         String websiteContent = doc.text();
-        String url = website.getUrl();
-
         String websiteTitle = doc.title();
-        Collection<Website> outgoingLinks = websiteUtils.getOutgoingLinksForDoc(doc, url);
+
+        //only use a max title length due to db limitation
+        if(StringUtils.isNotEmpty(websiteTitle) && websiteTitle.length() > 80){
+            websiteTitle = StringUtils.abbreviate(websiteTitle, "\u2026",80);
+        }
 
         if (!StringUtils.equals(websiteContent, website.getWholeDocument())) {
             website.setWholeDocument(websiteContent);
-            website.setBody(doc.body().text());
+            String mainText;
+            if(!doc.body().select("main").isEmpty()){
+                mainText = doc.body().select("main").text();
+            }
+            else {
+                mainText = doc.body().text();
+            }
+            website.setBody(mainText);
             website.setLastChanged(new Date());
         }
-        website.setOutgoingLinks(outgoingLinks);
         website.setTitle(websiteTitle);
         website.setRelevantForSearch(true);
     }
 
-    private boolean isSiteRelevantForSearch(Document doc) {
-        if(isEnglish(doc)){
-            //tuebingen in url
-            if(StringUtils.containsIgnoreCase(doc.location(), TUEBINGEN))
-                return true;
+    private void addOutgoingLinksForWebsite(Website website, Document doc, WebsiteModelUtils websiteUtils) {
+        String url = website.getUrl();
+        Collection<Website> outgoingLinks = websiteUtils.getOutgoingLinksForDoc(doc, url);
+        website.setOutgoingLinks(outgoingLinks);
+    }
 
-            //tuebingen in title
-            if(StringUtils.containsIgnoreCase(doc.title(), TUEBINGEN))
-                return true;
+    private boolean siteContainsTuebingen(Document doc) {
+        //tuebingen in url
+        if (StringUtils.containsIgnoreCase(doc.location(), TUEBINGEN))
+            return true;
 
-            //tuebingen in content
-            return StringUtils.containsIgnoreCase(doc.text(), TUEBINGEN);
-        }
-        return false;
+        //tuebingen in title
+        if (StringUtils.containsIgnoreCase(doc.title(), TUEBINGEN))
+            return true;
+
+        //tuebingen in content
+        return StringUtils.containsIgnoreCase(doc.text(), TUEBINGEN);
     }
 
     private boolean isEnglish(Document doc) {
-        Element htmlElement = doc.select("html").first();
-        if(htmlElement != null) {
-            String providedLangAttribute = htmlElement.attr("lang");
-            if (StringUtils.isNotEmpty(providedLangAttribute) && !StringUtils.containsAnyIgnoreCase(providedLangAttribute, EN_LANGUAGE_CODES)) {
-                return false;
-            }
-        }
-        //Recheck if lang was en due to too many false flagged sites
         SortedMap<Language, Double> detectedLanguages = detector.computeLanguageConfidenceValues(doc.text());
         Double englishPrediction = detectedLanguages.get(Language.ENGLISH);
-        return englishPrediction != null && detectedLanguages.get(Language.ENGLISH) > 0.95;
+        return englishPrediction != null && detectedLanguages.get(Language.ENGLISH) > 0.92;
     }
 }

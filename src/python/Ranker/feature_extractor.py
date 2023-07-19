@@ -23,6 +23,7 @@ class Features:
                 features = pd.concat(
                     [features, self.get_features_for_docs(docs, name)], axis=1
                 )
+
         return features.values
 
     def get_features_for_docs(self, docs, name):
@@ -33,6 +34,15 @@ class Features:
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)
         features[name + "_idf"] = tfidf.get_idf(self.query)
         features[name + "_vsm"] = tfidf.get_scores(self.query, docs)
+
+        features[name + "_covered_query_term_number"] = docs.apply(self.covered_query_term_number)
+        features[name + "_covered_query_term_ratio"] = docs.apply(self.covered_query_term_ratio)
+        features[name + "_stream_length"] = docs.apply(self.stream_length)
+
+        if name == "url":
+            features[name + "_len_url"] = docs.apply(self.len_url)
+            features[name + "_n_slash"] = docs.apply(self.n_slash)
+
         return features
         
     # functions only dependent on  single doc
@@ -60,33 +70,6 @@ class Features:
     def n_slash(self, doc):
         """returns number of slashes in url"""
         return doc.count("/")
-
-
-
-    # def get_features(self):
-    #     """returns features for all documents in reader"""
-    #     features = self.data.agg(
-    #         [
-    #             self.covered_query_term_number,
-    #             self.covered_query_term_ratio,
-    #             self.stream_length,
-    #         ]
-    #     )
-    #     bm25 = BM25()
-
-    #     for column in self.data.columns:
-    #         vectorizer = TfIdf(self.data[column])
-
-    #         features[column + "_idf"] = vectorizer.get_idf(self.query)
-    #         features[column + "_vsm"] = vectorizer.get_scores(self.query, self.data[column])
-    #         features[column + "_bm25"] = bm25.get_scores(self.query, self.data[column])
-
-    #     features["url_n_slash"] = self.data["url"].apply(self.n_slash)
-    #     features["url_len"] = self.data["url"].apply(self.len_url)
-
-    #     features.columns = ["_".join(a) for a in features.columns.to_flat_index()]
-
-    #     return features
 
 
 if __name__ == "__main__":

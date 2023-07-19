@@ -28,27 +28,11 @@ def transform_pairwise(X, y):
     return np.asarray(X_new), np.asarray(y_new).ravel()
 
 
-class RankSVM(svm.LinearSVC, Ranker):
+class RankSVM(Ranker):
 
-    def __init__(
-        self,
-        penalty="l2",
-        loss="squared_hinge",
-        *,
-        dual="warn",
-        tol=1e-4,
-        C=1.0,
-        multi_class="ovr",
-        fit_intercept=True,
-        intercept_scaling=1,
-        class_weight=None,
-        verbose=0,
-        random_state=None,
-        max_iter=1000,
-        load = True
-    ):
+    def __init__(self, load=True):
 
-        super(RankSVM, self).__init__(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, verbose=verbose, random_state=random_state, max_iter=max_iter)
+        self.model = svm.LinearSVC()
         if load:
             self.load_coef()
 
@@ -64,8 +48,7 @@ class RankSVM(svm.LinearSVC, Ranker):
         self
         """
         X_trans, y_trans = transform_pairwise(X, y)
-        super(RankSVM, self).fit(X_trans, y_trans)
-        return self
+        return self.model.fit(X_trans, y_trans)
     
     def get_scores(self, query, df):
         X = FeatureExtractor(query=query, url=df["url"], title=df["title"], body=df["body"]).get_features()
@@ -84,20 +67,13 @@ class RankSVM(svm.LinearSVC, Ranker):
             Returns a list of integers representing the relative order of
             the rows in X.
         """
-        if hasattr(self, 'coef_'):
-            return np.dot(X, self.coef_.T).ravel()
+        if hasattr(self.model, 'coef_'):
+            return np.dot(X, self.model.coef_.T).ravel()
         else:
             raise ValueError("Must call fit() prior to predict()")
 
-    def get_accuracy(self, X, y):
-        """
-        Because we transformed into a pairwise problem, chance level is at 0.5
-        """
-        X_trans, y_trans = transform_pairwise(X, y)
-        return np.mean(super(RankSVM, self).predict(X_trans) == y_trans)
-
     def save_coef(self, path="../models/ranksvm_coef.pkl"):
-        pickle.dump(self.coef_, open(path, "wb"))
+        pickle.dump(self.model.coef_, open(path, "wb"))
 
     def load_coef(self, path="src/python/models/ranksvm_coef.pkl"):
-        self.coef_ = pickle.load(open(path, "rb"))
+        self.model.coef_ = pickle.load(open(path, "rb"))

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import svm, linear_model
 import itertools
+import pickle
 
 from ranker import Ranker
 from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
@@ -46,7 +47,10 @@ class RankSVM(svm.LinearSVC, Ranker):
         max_iter=1000,
         load = True
     ):
-    super(RankSVM, self).__init__(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, verbose=verbose, random_state=random_state, max_iter=max_iter)
+
+        super(RankSVM, self).__init__(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, verbose=verbose, random_state=random_state, max_iter=max_iter)
+        if load:
+            self.load_coef()
 
     def fit(self, X, y):
         """
@@ -91,3 +95,9 @@ class RankSVM(svm.LinearSVC, Ranker):
         """
         X_trans, y_trans = transform_pairwise(X, y)
         return np.mean(super(RankSVM, self).predict(X_trans) == y_trans)
+
+    def save_coef(self, path="../models/ranksvm_coef.pkl"):
+        pickle.dump(self.coef_, open(path, "wb"))
+
+    def load_coef(self, path="src/python/models/ranksvm_coef.pkl"):
+        self.coef_ = pickle.load(open(path, "rb"))

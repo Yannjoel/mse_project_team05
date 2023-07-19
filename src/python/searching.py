@@ -15,7 +15,7 @@ def searcher(query, df, ranker_str="bm25"):
     scores = None
     if ranker_str == "bm25":
         bm25 = BM25()
-        scores = bm25.get_scores(query, df)
+        scores = bm25.get_scores(query, df['body'])
     elif ranker_str == "tfidf":
         tfidf = TfIdf()
         scores = tfidf.get_scores(query, df)
@@ -46,5 +46,7 @@ if __name__ == "__main__":
     bodies = r.get_bodies()
     urls = r.get_urls()
 
+    print('Data read')
+
     df = pd.DataFrame({"title": titles, "body": bodies, "url": urls})
-    print(searcher("Computer Science", df, ranker_str="nn"))
+    print(searcher("Computer Science", df, ranker_str="bm25"))

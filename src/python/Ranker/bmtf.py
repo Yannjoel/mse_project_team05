@@ -1,12 +1,12 @@
 import numpy as np
+from Ranker.ranker import Ranker
 
-
-class BM25:
+class BM25(Ranker):
     def __init__(self, k=1.2, b=0.75):
         self.k = k
         self.b = b
 
-    def get_scores(self, query, docs, **kwargs):
+    def get_scores(self, query, docs):
         """returns bm25 of doc"""
         avgdl = np.mean([len(doc.split()) for doc in docs])
         N = len(docs)

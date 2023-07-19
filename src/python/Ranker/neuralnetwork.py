@@ -7,10 +7,10 @@ from torch.utils.data import DataLoader, TensorDataset
 
 class NeuralNetwork(nn.Module):
 
-    def __init__(self, n_features, n_hidden):
+    def __init__(self, n_features, n_hidden, n_out=5):
         super(NeuralNetwork, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
-        self.fc2 = nn.Linear(n_hidden, 1)
+        self.fc2 = nn.Linear(n_hidden, n_out)
 
     def get_scores(self, X: torch.Tensor, **kwargs):
         """returns scores for docs"""

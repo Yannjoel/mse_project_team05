@@ -1,5 +1,5 @@
 import numpy as np
-from Ranker.ranker import Ranker
+from ranker import Ranker
 
 class BM25(Ranker):
     def __init__(self, k=1.2, b=0.75):

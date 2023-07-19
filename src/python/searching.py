@@ -1,52 +1,41 @@
-import numpy as np
-import pickle
-import pandas as pd
-import torch
-
-from Ranker.bmtf import BM25
-from Ranker.tfidf import TfIdf
-from Ranker.neuralnetwork import NeuralNetwork
-from Ranker.feature_extractor import Features
+from ranker import Ranker
+from RankingAlgorithms import *
 from DataHandling.db_reader import Reader
 
 
-def searcher(query, df, ranker_str="bm25"):
+def searcher(query, df, ranker_str="BM25"):
     # TODO: Implement variable length of results
-    scores = None
-    if ranker_str == "bm25":
-        bm25 = BM25()
-        scores = bm25.get_scores(query, df['body'])
-    elif ranker_str == "tfidf":
-        tfidf = TfIdf()
-        scores = tfidf.get_scores(query, df)
-    elif ranker_str == "nn":
-        nn = NeuralNetwork.load("src/python/models/nn.pth")
-        X = torch.tensor(
-            Features(
-                query, url=df["url"], title=df["title"], body=df["body"]
-            ).get_features(),
-            dtype=torch.float32,
-        )
-        scores = nn.get_scores(X).detach().numpy().flatten()
-    elif ranker_str == "pwsvm":
-        pwsvm = pickle.load(open("src/python/models/svm.pkl", "rb"))
-        X = Features(
-            query, url=df["url"], title=df["title"], body=df["body"]
-        ).get_features()
-        scores = pwsvm.get_scores(X=X)
-    else:
-        raise ValueError("Invalid Ranker chosen")
+    ranker = get_ranker(ranker_str)()
+    scores = ranker.get_scores(query, df["body"])
+    return scores
 
-    return df[["title", "url"]].iloc[np.argsort(scores)[::-1]][:10], scores
+
+def get_all_rankers():
+    """
+        returns all subclasses of Match
+         Subclasses in ML have to be imported
+    """
+    all_my_base_classes = {cls.__name__: cls for cls in Ranker.__subclasses__()}
+    return all_my_base_classes
+
+
+def get_ranker_names():
+    """
+        returns a list of the names of all subclasses
+    """
+    rankers = get_all_rankers()
+    names = [cls for cls in rankers.keys()]
+    return names
+
+
+def get_ranker(name: str):
+    """
+        returns the subclass given the name
+    """
+    rankers = get_all_rankers()
+    return rankers[name]
 
 
 if __name__ == "__main__":
-    r = Reader()
-    titles = r.get_titles()
-    bodies = r.get_bodies()
-    urls = r.get_urls()
-
-    print('Data read')
-
-    df = pd.DataFrame({"title": titles, "body": bodies, "url": urls})
-    print(searcher("Computer Science", df, ranker_str="bm25"))
+    # test get_all_rankers
+    print(get_all_rankers())

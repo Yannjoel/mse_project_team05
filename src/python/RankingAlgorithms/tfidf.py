@@ -2,7 +2,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-class TfIdf:
+from ranker import Ranker
+
+class TfIdf(Ranker):
 
     def __init__(self, corpus):
         self.corpus = corpus

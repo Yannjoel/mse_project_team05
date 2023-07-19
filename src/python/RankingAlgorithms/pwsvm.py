@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn import svm, linear_model
 import itertools
 
+from ranker import Ranker
+from RankingAlgorithms.feature_extractor import FeatureExtractor
+
 
 def transform_pairwise(X, y):
     X_new = []
@@ -24,7 +27,7 @@ def transform_pairwise(X, y):
     return np.asarray(X_new), np.asarray(y_new).ravel()
 
 
-class RankSVM(svm.LinearSVC):
+class RankSVM(svm.LinearSVC, Ranker):
 
     def fit(self, X, y):
         """
@@ -40,8 +43,13 @@ class RankSVM(svm.LinearSVC):
         X_trans, y_trans = transform_pairwise(X, y)
         super(RankSVM, self).fit(X_trans, y_trans)
         return self
+    
+    def get_scores(self, query, df):
+        X = FeatureExtractor(query=query, url=df["url"], title=df["title"], body=df["body"]).get_features()
+        return self.predict(X)
 
-    def get_scores(self, X, **kwargs):
+
+    def predict(self, X):
         """
         Predict an ordering on X. For a list of n samples, this method
         returns a list from 0 to n-1 with the relative order of the rows of X.
@@ -55,7 +63,7 @@ class RankSVM(svm.LinearSVC):
             the rows in X.
         """
         if hasattr(self, 'coef_'):
-            return np.argsort(np.dot(X, self.coef_.T).ravel())
+            return np.dot(X, self.coef_.T).ravel()
         else:
             raise ValueError("Must call fit() prior to predict()")
 

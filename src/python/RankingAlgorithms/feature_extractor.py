@@ -3,8 +3,8 @@ import pandas as pd
 
 
 from DataHandling.db_reader import Reader
-from Ranker.tfidf import TfIdf
-from Ranker.bmtf import BM25
+from RankingAlgorithms.tfidf import TfIdf
+from RankingAlgorithms.bmtf import BM25
 
 
 class Features:
@@ -28,7 +28,7 @@ class Features:
 
     def get_features_for_docs(self, docs, name):
         """helper function for get_features, returns features for a single document type"""
-        bm25 = BM25()
+        bm25 = BM25(is_ranker=False)
         tfidf = TfIdf(corpus=docs)
         features = pd.DataFrame()
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)

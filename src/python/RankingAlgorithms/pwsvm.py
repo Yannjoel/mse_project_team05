@@ -4,7 +4,7 @@ from sklearn import svm, linear_model
 import itertools
 
 from ranker import Ranker
-from RankingAlgorithms.feature_extractor import FeatureExtractor
+from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
 
 
 def transform_pairwise(X, y):
@@ -29,6 +29,25 @@ def transform_pairwise(X, y):
 
 class RankSVM(svm.LinearSVC, Ranker):
 
+    def __init__(
+        self,
+        penalty="l2",
+        loss="squared_hinge",
+        *,
+        dual="warn",
+        tol=1e-4,
+        C=1.0,
+        multi_class="ovr",
+        fit_intercept=True,
+        intercept_scaling=1,
+        class_weight=None,
+        verbose=0,
+        random_state=None,
+        max_iter=1000,
+        load = True
+    ):
+    super(RankSVM, self).__init__(penalty=penalty, loss=loss, dual=dual, tol=tol, C=C, multi_class=multi_class, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling, class_weight=class_weight, verbose=verbose, random_state=random_state, max_iter=max_iter)
+
     def fit(self, X, y):
         """
         Fit a pairwise ranking model.
@@ -47,7 +66,6 @@ class RankSVM(svm.LinearSVC, Ranker):
     def get_scores(self, query, df):
         X = FeatureExtractor(query=query, url=df["url"], title=df["title"], body=df["body"]).get_features()
         return self.predict(X)
-
 
     def predict(self, X):
         """

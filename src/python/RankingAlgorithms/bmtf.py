@@ -1,13 +1,19 @@
 import numpy as np
 from ranker import Ranker
 
+
 class BM25(Ranker):
-    def __init__(self, k=1.2, b=0.75):
+    def __init__(self, k=1.2, b=0.75, is_ranker=True):
         self.k = k
         self.b = b
+        self.is_ranker = is_ranker
 
-    def get_scores(self, query, docs):
+    def get_scores(self, query, df):
         """returns bm25 of doc"""
+        if self.is_ranker:
+            docs = df["body"]
+        else:
+            docs = df
         avgdl = np.mean([len(doc.split()) for doc in docs])
         N = len(docs)
         # number of docs containing query term

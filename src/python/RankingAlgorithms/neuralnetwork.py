@@ -5,21 +5,28 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
 from ranker import Ranker
-from RankingAlgorithms.feature_extractor import FeatureExtractor
+from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
 
 
 class NeuralNetwork(nn.Module, Ranker):
-    def __init__(self, n_features, n_hidden, n_out=5):
+    def __init__(self, n_features=20, n_hidden=10, n_out=5, load=True):
         super(NeuralNetwork, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
         self.fc2 = nn.Linear(n_hidden, n_hidden)
         self.fc3 = nn.Linear(n_hidden, n_out)
+        if load:
+            self.load()
 
     def forward(self, X):
         X = F.relu(self.fc1(X))
         X = F.relu(self.fc2(X))
-        X = self.fc3(X)
+        X = F.relu(self.fc3(X))
+        X = F.sigmoid(X)
         return X
+
+    def evaluate(self, X):
+        pred = self.forward(X)
+        return (pred > 0.5).cumprod(axis=1).sum(axis=1) - 1
 
     def get_scores(self, query, df):
         X = torch.tensor(
@@ -28,15 +35,16 @@ class NeuralNetwork(nn.Module, Ranker):
             ).get_features(),
             dtype=torch.float32,
         )
-        return self.forward(X).numpy()
+        scores = self.forward(X).cumprod(axis=1).sum(axis=1) - 1
+        return scores.detach().numpy()
 
     def save(self, model_path="models/nn.pth"):
-        torch.save(self, model_path)
-        print("model saved in ", model_path)
+        torch.save(self.state_dict(), model_path)
+        #
 
-    @staticmethod
-    def load(model_path="models/nn.pth"):
-        return torch.load(model_path)
+    def load(self, model_path="src/python/models/nn.pth"):
+        self.load_state_dict(torch.load(model_path))
+        return self
 
     def train_loop(self, data, targets, loss_fn, optimizer):
         # create dataloader
@@ -46,7 +54,7 @@ class NeuralNetwork(nn.Module, Ranker):
         # train
         self.train()
         for batch, (X, y) in enumerate(dataloader):
-            output = self.get_scores(X)
+            output = self.forward(X)
             loss = loss_fn(output, y)
 
             if batch % 500 == 0:

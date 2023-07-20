@@ -67,7 +67,7 @@ public class MultithreadedCrawler {
             crawler.crawl();
         }
         finally {
-            HibernateUtil.shutdown();
+            HibernateUtil.getSingletonInstance().shutdown();
         }
     }
 
@@ -167,7 +167,7 @@ public class MultithreadedCrawler {
      * This methode removes this mark from all website entries in the db
      */
     private void cleanUpInterruptedCrawling() {
-        try (StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
+        try (StatelessSession dbSession = HibernateUtil.openStatelessSession()) {
             MutationQuery query = dbSession.createMutationQuery("UPDATE Website SET stagedForCrawling=:stagedForCrawling");
             query.setParameter("stagedForCrawling", Boolean.FALSE);
             dbSession.getTransaction().begin();
@@ -177,8 +177,8 @@ public class MultithreadedCrawler {
     }
 
     private void scheduleMoreWebsitesForCrawlingExcludingHosts(Set<String> hostsToExclude) {
-        Collection<Website> websites = null;
-        try (StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
+        Collection<Website> websites;
+        try (StatelessSession dbSession = HibernateUtil.openStatelessSession()) {
             WebsiteModelUtils websiteUtils = new WebsiteModelUtils(dbSession);
             websites = websiteUtils.getUncrawledWebsites(MAX_CRAWL_SCHEDULE_BATCH_SIZE, hostsToExclude);
             //re-crawl old data if there are no new links
@@ -244,7 +244,7 @@ public class MultithreadedCrawler {
      * Creates db entries for all entry url, which are then picked up by the crawler
      */
     private void initializeCrawlerWithEntryUrls() {
-        try (StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
+        try (StatelessSession dbSession = HibernateUtil.openStatelessSession()) {
             WebsiteModelUtils websiteUtils = new WebsiteModelUtils(dbSession);
             for (String entryUrl : entryUrls) {
                 websiteUtils.getOrCreateWebsite(entryUrl, StringUtils.EMPTY);

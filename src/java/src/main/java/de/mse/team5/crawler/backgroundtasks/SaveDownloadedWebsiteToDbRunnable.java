@@ -31,7 +31,7 @@ public class SaveDownloadedWebsiteToDbRunnable implements Runnable {
 
     @Override
     public void run() {
-        try(StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
+        try(StatelessSession dbSession = HibernateUtil.openStatelessSession()) {
             WebsiteModelUtils websiteUtils = new WebsiteModelUtils(dbSession);
 
             for (DownloadedDocDTO docDTO : downloadedWebsitesToProcess) {

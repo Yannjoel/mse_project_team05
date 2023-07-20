@@ -8,21 +8,6 @@ from ranker import Ranker
 from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
 
 
-def transform_pairwise(X, y):
-    larger = (y[:, None] > y).astype(int)
-    smaller = (y[:, None] < y).astype(int) * -1
-    paired_labels = (larger + smaller).flatten()
-
-    feature_difference = X[:, None] - X
-    paired_features = feature_difference.reshape(-1, X.shape[1])
-    paired_features = paired_features[paired_labels != 0]
-
-    paired_labels = paired_labels[paired_labels != 0]
-    print("n_samples after pairwise transform ", len(paired_labels))
-
-    return paired_features, paired_labels
-
-
 class RankSVM(Ranker):
     def __init__(self, load=True):
         self.model = svm.LinearSVC()
@@ -40,7 +25,7 @@ class RankSVM(Ranker):
         -------
         self
         """
-        X_trans, y_trans = transform_pairwise(X, y)
+        X_trans, y_trans = self.transform_pairwise(X, y)
         return self.model.fit(X_trans, y_trans)
 
     def get_scores(self, query, df):
@@ -66,6 +51,21 @@ class RankSVM(Ranker):
             return np.dot(X, self.model.coef_.T).ravel()
         else:
             raise ValueError("Must call fit() prior to predict()")
+        
+    @staticmethod    
+    def transform_pairwise(X, y):
+        larger = (y[:, None] > y).astype(int)
+        smaller = (y[:, None] < y).astype(int) * -1
+        paired_labels = (larger + smaller).flatten()
+
+        feature_difference = X[:, None] - X
+        paired_features = feature_difference.reshape(-1, X.shape[1])
+        paired_features = paired_features[paired_labels != 0]
+
+        paired_labels = paired_labels[paired_labels != 0]
+        print("n_samples after pairwise transform ", len(paired_labels))
+
+        return paired_features, paired_labels
 
     def save(self, path="../models/ranksvm.pkl"):
         pickle.dump(self.model, open(path, "wb"))

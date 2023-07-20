@@ -8,7 +8,7 @@ from nltk.corpus import wordnet
 
 # TODO FRage where to put this?
 nltk.download('stopwords')
-STOPWORDS = set(stopwords.words('english'))
+STOPWORDS = set(stopwords.words('english') + ['tübingen'])
 
 class Ranker(object):
 

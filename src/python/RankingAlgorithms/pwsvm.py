@@ -9,29 +9,22 @@ from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
 
 
 def transform_pairwise(X, y):
-    X_new = []
-    y_new = []
-    y = np.asarray(y)
-    if y.ndim == 1:
-        y = np.c_[y, np.ones(y.shape[0])]
-    comb = itertools.combinations(range(X.shape[0]), 2)
-    for k, (i, j) in enumerate(comb):
-        if y[i, 0] == y[j, 0] or y[i, 1] != y[j, 1]:
-            # skip if same target or different group
-            continue
-        X_new.append(X[i] - X[j])
-        y_new.append(np.sign(y[i, 0] - y[j, 0]))
-        # output balanced classes
-        if y_new[-1] != (-1) ** k:
-            y_new[-1] = - y_new[-1]
-            X_new[-1] = - X_new[-1]
-    return np.asarray(X_new), np.asarray(y_new).ravel()
+    larger = (y[:, None] > y).astype(int)
+    smaller = (y[:, None] < y).astype(int) * -1
+    paired_labels = (larger + smaller).flatten()
+
+    feature_difference = X[:, None] - X
+    paired_features = feature_difference.reshape(-1, X.shape[1])
+    paired_features = paired_features[paired_labels != 0]
+
+    paired_labels = paired_labels[paired_labels != 0]
+    print("n_samples after pairwise transform ", len(paired_labels))
+
+    return paired_features, paired_labels
 
 
 class RankSVM(Ranker):
-
     def __init__(self, load=True):
-
         self.model = svm.LinearSVC()
         if load:
             self.load_coef()
@@ -49,9 +42,11 @@ class RankSVM(Ranker):
         """
         X_trans, y_trans = transform_pairwise(X, y)
         return self.model.fit(X_trans, y_trans)
-    
+
     def get_scores(self, query, df):
-        X = FeatureExtractor(query=query, url=df["url"], title=df["title"], body=df["body"]).get_features()
+        X = FeatureExtractor(
+            query=query, url=df["url"], title=df["title"], body=df["body"]
+        ).get_features()
         return self.predict(X)
 
     def predict(self, X):
@@ -67,12 +62,11 @@ class RankSVM(Ranker):
             Returns a list of integers representing the relative order of
             the rows in X.
         """
-        if hasattr(self.model, 'coef_'):
+        if hasattr(self.model, "coef_"):
             return np.dot(X, self.model.coef_.T).ravel()
         else:
             raise ValueError("Must call fit() prior to predict()")
 
-            
     def save(self, path="../models/ranksvm.pkl"):
         pickle.dump(self.model, open(path, "wb"))
 

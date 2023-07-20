@@ -73,4 +73,4 @@ class Features:
 
 
 if __name__ == "__main__":
-    features = Features(query="hello Tübingen")
+    features = Features(query="food and drinks")

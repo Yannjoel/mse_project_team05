@@ -9,7 +9,7 @@ from RankingAlgorithms.feature_extractor import Features as FeatureExtractor
 
 
 class NeuralNetwork(nn.Module, Ranker):
-    def __init__(self, n_features=20, n_hidden=10, n_out=5, load=True):
+    def __init__(self, n_features=12, n_hidden=10, n_out=5, load=True):
         super(NeuralNetwork, self).__init__()
         self.fc1 = nn.Linear(n_features, n_hidden)
         self.fc2 = nn.Linear(n_hidden, n_hidden)

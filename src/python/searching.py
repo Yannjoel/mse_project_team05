@@ -6,6 +6,9 @@ from DataHandling.language_processing import remove_stopwords
 
 
 def searcher(query, df, ranker_str="BM25"):
+    """
+    returns top-10 results for a given query + scores of all documents
+    """
     # TODO: Implement variable length of results
     ranker = get_ranker(ranker_str)()
     query = remove_stopwords(query)
@@ -17,7 +20,7 @@ def searcher(query, df, ranker_str="BM25"):
     urls = df["url"].iloc[top_10].values
     top_10_scores = scores[top_10].round(3)
 
-    # store results in txt.file
+    # store top-10 results in txt.file
     path = uniquify("results/search_results.txt")
     with open(path, "w") as f:
         for i, (url, score) in enumerate(zip(urls, top_10_scores), start=1):
@@ -27,6 +30,9 @@ def searcher(query, df, ranker_str="BM25"):
 
 
 def uniquify(path):
+    """
+    source: https://stackoverflow.com/questions/13852700/create-file-but-if-name-exists-add-number
+    """
     filename, extension = os.path.splitext(path)
     counter = 1
 
@@ -39,8 +45,7 @@ def uniquify(path):
 
 def get_all_rankers():
     """
-    returns all subclasses of Match
-     Subclasses in ML have to be imported
+    returns all subclasses of Ranker
     """
     all_my_base_classes = {cls.__name__: cls for cls in Ranker.__subclasses__()}
     return all_my_base_classes

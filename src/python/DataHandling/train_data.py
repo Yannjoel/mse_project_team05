@@ -17,3 +17,21 @@ def load_data(
     # extract features from data
     X = X[:, feature_indices]
     return X, y
+
+
+def transform_pairwise(X, y):
+    """
+    Transform data into pairwise optimization format
+    """
+    larger = (y[:, None] > y).astype(int)
+    smaller = (y[:, None] < y).astype(int) * -1
+    paired_labels = (larger + smaller).flatten()
+
+    feature_difference = X[:, None] - X
+    paired_features = feature_difference.reshape(-1, X.shape[1])
+    paired_features = paired_features[paired_labels != 0]
+
+    paired_labels = paired_labels[paired_labels != 0]
+    print("n_samples after pairwise transform ", len(paired_labels))
+
+    return paired_features, paired_labels

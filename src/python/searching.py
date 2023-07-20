@@ -1,21 +1,40 @@
+import os
 from ranker import Ranker
 from RankingAlgorithms import *
 from DataHandling.db_reader import Reader
+from DataHandling.language_processing import remove_stopwords
 
 
 def searcher(query, df, ranker_str="BM25"):
     # TODO: Implement variable length of results
-    # TODO: TFIDF does not work yet (see RankingAlgorithms/tfidf.py)
     ranker = get_ranker(ranker_str)()
-    query = ranker.process_query(query)
+    query = remove_stopwords(query)
     scores = ranker.get_scores(query, df)
 
     # calculate top-10 results and return titles and urls
     top_10 = scores.argsort()[-10:][::-1]
     titles = df["title"].iloc[top_10].values
     urls = df["url"].iloc[top_10].values
+    top_10_scores = scores[top_10].round(3)
+
+    # store results in txt.file
+    path = uniquify("results/search_results.txt")
+    with open(path, "w") as f:
+        for i, (url, score) in enumerate(zip(urls, top_10_scores), start=1):
+            f.write(f"{i}.\t{url}\t{score}\n")
 
     return titles, urls, scores
+
+
+def uniquify(path):
+    filename, extension = os.path.splitext(path)
+    counter = 1
+
+    while os.path.exists(path):
+        path = filename + " (" + str(counter) + ")" + extension
+        counter += 1
+
+    return path
 
 
 def get_all_rankers():
@@ -48,10 +67,9 @@ if __name__ == "__main__":
     # test get_all_rankers
     import pandas as pd
 
-    print(get_all_rankers())
     r = Reader()
     df = pd.DataFrame(
         {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
     )
 
-    print(searcher(query="sports", df=df, ranker_str="RankSVM"))
+    print(searcher(query="sports", df=df, ranker_str="NeuralNetwork"))

@@ -1,8 +1,4 @@
-import numpy as np
 import pandas as pd
-
-
-from DataHandling.db_reader import Reader
 from RankingAlgorithms.tfidf import TfIdf
 from RankingAlgorithms.bmtf import BM25
 

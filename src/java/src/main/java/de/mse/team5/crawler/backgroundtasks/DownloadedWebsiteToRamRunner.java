@@ -34,29 +34,43 @@ public class DownloadedWebsiteToRamRunner implements Runnable {
 
         Duration waitTime = Duration.of(hostCrawlDelay, ChronoUnit.SECONDS);
         for (Website site : sitesToDownload) {
-            String siteUrl = site.getUrl();
-            LOG.debug("fetching " + siteUrl);
-            //download website
-            Document doc = null;
-            if (getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(site)) {
-                site.setBlockedByRobotsTxt(false);
-                doc = HttpRequestHelper.downloadWebsiteContentForUrl(siteUrl);
-                if (doc == null) {
-                    site.setRelevantForSearch(false);
-                    site.setFailedToDownload(true);
-                }
-            }else{
-                site.setRelevantForSearch(false);
-                site.setBlockedByRobotsTxt(true);
-            }
-            DownloadedDocDTO downloadDoc = new DownloadedDocDTO(site, doc, Instant.now());
-            downloadedDocsToProcessCopy.add(downloadDoc);
-            try {
-                Thread.sleep(waitTime);
-            } catch (InterruptedException e) {
-                LOG.warn("Waiting interrupted due to ", e);
-            }
+            fetchWebsite(site);
+            waitCrawlDelay(waitTime);
+
         }
         currentlyCrawledHostsCopy.remove(host);
+    }
+
+    /**
+     * Downloads the content of the website based on its url and adds it to downloadedDocsToProcessCopy
+     * as well as setting basic information about availibility
+     * @param site site providing the url
+     */
+    private void fetchWebsite(Website site) {
+        String siteUrl = site.getUrl();
+        LOG.debug("fetching " + siteUrl);
+        //download website
+        Document doc = null;
+        if (getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(site)) {
+            site.setBlockedByRobotsTxt(false);
+            doc = HttpRequestHelper.downloadWebsiteContentForUrl(siteUrl);
+            if (doc == null) {
+                site.setRelevantForSearch(false);
+                site.setFailedToDownload(true);
+            }
+        } else {
+            site.setRelevantForSearch(false);
+            site.setBlockedByRobotsTxt(true);
+        }
+        DownloadedDocDTO downloadDoc = new DownloadedDocDTO(site, doc, Instant.now());
+        downloadedDocsToProcessCopy.add(downloadDoc);
+    }
+
+    private void waitCrawlDelay(Duration waitTime) {
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+            LOG.warn("Waiting interrupted due to ", e);
+        }
     }
 }

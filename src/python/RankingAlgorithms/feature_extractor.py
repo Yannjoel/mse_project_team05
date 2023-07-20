@@ -9,7 +9,7 @@ from RankingAlgorithms.bmtf import BM25
 
 class Features:
     def __init__(self, query, **kwargs):
-        self.query = query.lower()
+        self.query = query
         self.url = kwargs.get("url", None)
         self.title = kwargs.get("title", None)
         self.body = kwargs.get("body", None)

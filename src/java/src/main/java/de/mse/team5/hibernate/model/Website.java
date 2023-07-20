@@ -160,10 +160,6 @@ public class Website {
         this.title = title;
     }
 
-    public Collection<Website> getOutgoingLinks() {
-        return outgoingLinks;
-    }
-
     public void setOutgoingLinks(Collection<Website> outgoingLinks) {
         this.outgoingLinks = outgoingLinks;
     }

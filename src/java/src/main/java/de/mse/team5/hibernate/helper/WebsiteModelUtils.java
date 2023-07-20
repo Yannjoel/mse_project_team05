@@ -41,7 +41,7 @@ public class WebsiteModelUtils {
             }
             String linkUrl = formatLinkUrl(link.attr("href"), currentFullUrl);
             if(linkShouldBeCrawled(linkUrl)) {
-                Website outgoingLink = getOrCreateWebsite(linkUrl, currentFullUrl, link.text());
+                Website outgoingLink = getOrCreateWebsite(linkUrl, currentFullUrl);
                 if (outgoingLink != null) {
                     outgoingLinks.add(outgoingLink);
                 }
@@ -51,18 +51,11 @@ public class WebsiteModelUtils {
     }
 
     /**
-     * @param href must be an well formed absolute url
+     * @param href must be a well-formed url
+     * @param currentFullUrl url of the site, that the link was found on to evaluate relative links
      * @return A new website model that can be saved to the db or the existing model in the db for the given url
      */
-    public Website getOrCreateWebsite(String href) {
-         return getOrCreateWebsite(href, null, null);
-    }
-
     public Website getOrCreateWebsite(String href, String currentFullUrl) {
-        return getOrCreateWebsite(href, currentFullUrl, null);
-    }
-
-    public Website getOrCreateWebsite(String href, String currentFullUrl, String linkText) {
         String linkUrl = formatLinkUrl(href, currentFullUrl);
         Website website = null;
 
@@ -71,8 +64,7 @@ public class WebsiteModelUtils {
             if (website == null) {
                 website = new Website();
                 website.setUrl(linkUrl);
-                //ToDO link.setLinkText(linkText);
-                instertWebsiteIntoDb(website);
+                insertWebsiteIntoDb(website);
             }
         }
         return website;
@@ -98,10 +90,7 @@ public class WebsiteModelUtils {
             }
             URL url = URI.create(linkUrl).toURL();
             formattedURL = formatLinkUrl(url);
-            //ToDo: check if we need to also focus on parameters
-        } catch (IllegalArgumentException e) {
-            LOG.warn("malformed url " + linkUrl, e);
-        } catch (MalformedURLException e) {
+        } catch (IllegalArgumentException | MalformedURLException e) {
             LOG.warn("malformed url " + linkUrl, e);
         }
         return formattedURL;
@@ -147,7 +136,7 @@ public class WebsiteModelUtils {
         }
     }
 
-    public void instertWebsiteIntoDb(Website website) {
+    public void insertWebsiteIntoDb(Website website) {
         try {
             dbSession.getTransaction().begin();
             dbSession.insert(website);
@@ -174,10 +163,6 @@ public class WebsiteModelUtils {
         return existingWebsite;
     }
 
-    public Collection<Website> getUncrawledWebsites(int maxNrOfResults) {
-        return getUncrawledWebsites(maxNrOfResults, null);
-    }
-
     public Collection<Website> getUncrawledWebsites(int maxNrOfResults, Set<String> hostsToExclude) {
         CriteriaBuilder cb = dbSession.getCriteriaBuilder();
         CriteriaQuery<Website> cr = cb.createQuery(Website.class);
@@ -199,10 +184,6 @@ public class WebsiteModelUtils {
         query.setMaxResults(maxNrOfResults);
 
         return query.getResultList();
-    }
-
-    public Collection<Website> getLongestNotCrawledWebsites(int maxNrOfResults) {
-        return getLongestNotCrawledWebsites(maxNrOfResults, null);
     }
 
     public Collection<Website> getLongestNotCrawledWebsites(int maxNrOfResults, Set<String> hostToExclude) {

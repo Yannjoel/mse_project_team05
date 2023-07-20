@@ -43,7 +43,7 @@ public class DownloadedWebsiteToRamRunner implements Runnable {
 
     /**
      * Downloads the content of the website based on its url and adds it to downloadedDocsToProcessCopy
-     * as well as setting basic information about availibility
+     * as well as setting basic information about availability
      * @param site site providing the url
      */
     private void fetchWebsite(Website site) {

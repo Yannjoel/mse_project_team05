@@ -9,10 +9,8 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import java.util.Properties;
-
 /**
- * See file hiberate.cfg.xml to change connection settings
+ * See file hibernate.cfg.xml to change connection settings
  */
 public class HibernateUtil {
 
@@ -23,9 +21,6 @@ public class HibernateUtil {
 
 
     public static SessionFactory getSessionFactory() {
-        //Set save location of the db file to be contained within the maven project
-        Properties props = System.getProperties();
-
         if (sessionFactory == null) {
             try {
                 // Create registry

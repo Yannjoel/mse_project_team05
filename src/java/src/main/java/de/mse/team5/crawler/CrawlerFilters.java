@@ -1,6 +1,5 @@
 package de.mse.team5.crawler;
 
-import de.mse.team5.hibernate.model.Website;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
@@ -31,7 +30,6 @@ public class CrawlerFilters {
             fitsFilter = isInAllowedUrls;
         }
 
-        //Todo: Check for better filter to detect files
         if (StringUtils.endsWithAny(url, URL_ENDINGS_TO_IGNORE)) {
             fitsFilter = false;
         }

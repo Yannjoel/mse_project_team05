@@ -75,7 +75,7 @@ public class MultithreadedCrawler {
         updateSSLCertsToMozillaCerts();
         //insert start List
         initializeCrawlerWithEntryUrls();
-        cleanUpInteruptedCrawling();
+        cleanUpInterruptedCrawling();
         LOG.info("Finished initializing of crawler");
 
         int updateCounter = 0;
@@ -149,7 +149,7 @@ public class MultithreadedCrawler {
      * If the crawling process gets interrupted, the sites are still marked as in process
      * This methode removes this mark from all website entries in the db
      */
-    private void cleanUpInteruptedCrawling() {
+    private void cleanUpInterruptedCrawling() {
         try (StatelessSession dbSession = HibernateUtil.getSessionFactory().openStatelessSession()) {
             MutationQuery query = dbSession.createMutationQuery("UPDATE Website SET stagedForCrawling=:stagedForCrawling");
             query.setParameter("stagedForCrawling", Boolean.FALSE);

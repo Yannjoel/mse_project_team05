@@ -8,8 +8,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 
 public class HttpRequestHelper {
+
+    private HttpRequestHelper(){
+        //prevent initialization
+    }
+
     private static final Logger LOG = LogManager.getLogger(HttpRequestHelper.class);
 
     public static Document downloadWebsiteContentForUrl(String url) {
@@ -25,7 +31,7 @@ public class HttpRequestHelper {
         } catch (HttpStatusException e) {
             LOG.info(e.getMessage());
         } catch (IOException e) {
-            LOG.warn("Website " + url + " not available due to " + e.getMessage());
+            LOG.warn(MessageFormat.format("Website {0} not available due to {1}", url, e.getMessage()));
         }
         return doc;
     }

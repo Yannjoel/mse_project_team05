@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.MutationQuery;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -37,7 +38,7 @@ public class MultithreadedCrawler {
     public static final Logger LOG = LogManager.getLogger(MultithreadedCrawler.class);
 
     //Websites that the crawler should start at
-    public static final Collection<String> entryUrls = Arrays.asList("https://uni-tuebingen.de/en/",
+    private static final Collection<String> entryUrls = Arrays.asList("https://uni-tuebingen.de/en/",
             "https://www.reddit.com/r/Tuebingen/",
             "https://www.mygermanyvacation.com/best-things-to-do-and-see-in-tubingen-germany/",
             "https://www.viamichelin.com/web/Tourist-Attractions/Tourist-Attractions-Tubingen-72070-Baden_Wurttemberg-Germany",
@@ -81,23 +82,7 @@ public class MultithreadedCrawler {
         int updateCounter = 0;
         while (crawlingNotFinishedOrStopped()) {
             updateCounter ++;
-            if(crawlerNotToBusy()) {
-                if (hostSpecificLinksToCrawlSet.isEmpty()) {
-                    scheduleMoreWebsitesForCrawling();
-                }
-
-                //We want to crawl multiple hosts at once, due to each host having an individual crawl delay
-                if (hostSpecificLinksToCrawlSet.keySet().size() < MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL) {
-                    scheduleMoreWebsitesFromOtherHostsForCrawling();
-                }
-
-                if (emptySlotInCrawlerPool() && moreWebsitesAvailableToCrawl()) {
-                    fetchMoreWebsites();
-                }
-            }
-            if (unprocessedDownloadedWebsitesAvailable()) {
-                addWebsiteToAsynchronousProcessing();
-            }
+            runCrawlCycle();
             //Only check in time intervals
             sleepOneSec();
 
@@ -110,12 +95,39 @@ public class MultithreadedCrawler {
         LOG.info("Finished crawling");
     }
 
+    /**
+     * Running one crawl cycle completing the following steps in order
+     * 1. if there aren't enough crawling threads:
+     *      1.1. queue more websites for downloading
+     *      1.2. queue more websites for websites that are currently not crawled if there aren't enough websites crawled in parallel
+     */
+    private void runCrawlCycle() {
+        if(crawlerNotToBusy()) {
+            if (hostSpecificLinksToCrawlSet.isEmpty()) {
+                scheduleMoreWebsitesForCrawling();
+            }
+
+            //We want to crawl multiple hosts at once, due to each host having an individual crawl delay
+            if (hostSpecificLinksToCrawlSet.keySet().size() < MIN_AMOUNT_OF_WEBSITES_TO_CRAWL_IN_PARALLEL) {
+                scheduleMoreWebsitesFromOtherHostsForCrawling();
+            }
+
+            if (emptySlotInCrawlerPool() && moreWebsitesAvailableToCrawl()) {
+                fetchMoreWebsites();
+            }
+        }
+        if (unprocessedDownloadedWebsitesAvailable()) {
+            addWebsiteToAsynchronousProcessing();
+        }
+    }
+
     private void sleepOneSec() {
         Duration waitTime = Duration.of(1, ChronoUnit.SECONDS);
         try {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {
             LOG.warn("Unexpected Interrupt: ", e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -124,10 +136,12 @@ public class MultithreadedCrawler {
     }
 
     private void logCurrentCrawlStatus() {
-        LOG.info("Currently crawled hosts (" + currentlyCrawledHosts.size() + ")=" + currentlyCrawledHosts);
-        LOG.info("Currently crawled number of sites to crawl=" + hostSpecificLinksToCrawlSet.values().size());
-        LOG.info("downloadedWebsitesToProcess Count =" + downloadedWebsitesToProcess.size());
-        LOG.info("Staged process task " + websiteProcessingService.getQueue().size());
+        if(LOG.isInfoEnabled()) {
+            LOG.info(MessageFormat.format("Currently crawled hosts ({0})={1}", currentlyCrawledHosts.size(), currentlyCrawledHosts));
+            LOG.info(MessageFormat.format("Currently crawled number of sites to crawl={0}", hostSpecificLinksToCrawlSet.values().size()));
+            LOG.info(MessageFormat.format("downloadedWebsitesToProcess Count ={0}", downloadedWebsitesToProcess.size()));
+            LOG.info(MessageFormat.format("Staged process task {0}", websiteProcessingService.getQueue().size()));
+        }
     }
 
     /**
@@ -135,8 +149,11 @@ public class MultithreadedCrawler {
      * See List of installed certs at <a href="https://hg.mozilla.org/mozilla-central/raw-file/tip/security/nss/lib/ckfw/builtins/certdata.txt">...</a>
      */
     private void updateSSLCertsToMozillaCerts() {
-        String truststorePath = System.getProperty("user.dir") + "/" + TRUSTSTORE_NAME;
-        LOG.info("Setting truststore to " + truststorePath);
+        String truststorePath = System.getProperty("user.dir") + '/' + TRUSTSTORE_NAME;
+
+        if(LOG.isInfoEnabled()) {
+            LOG.info(MessageFormat.format("Setting truststore to {0}", truststorePath));
+        }
 
         System.setProperty("javax.net.ssl.trustStore", TRUSTSTORE_NAME);
         System.setProperty("javax.net.ssl.trustStorePassword=", "changeit");
@@ -210,7 +227,9 @@ public class MultithreadedCrawler {
 
     private Runnable getCrawTaskForHost(String host) {
         Set<Website> sitesToDownload = hostSpecificLinksToCrawlSet.get(host);
-        LOG.debug("Starting new batch fetch of size " + sitesToDownload.size() + " for host: " + host);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(MessageFormat.format("Starting new batch fetch of size {0} for host: {1}", sitesToDownload.size(), host));
+        }
         hostSpecificLinksToCrawlSet.remove(host);
         Runnable task = new DownloadedWebsiteToRamRunner(sitesToDownload, currentlyCrawledHosts, host, downloadedWebsitesToProcess);
         currentlyCrawledHosts.add(host);
@@ -266,7 +285,10 @@ public class MultithreadedCrawler {
             if(downloadedWebsitesToProcess.size() > 150) {
                 downloadedWebsitesToProcessCopy = downloadedWebsitesToProcessCopy.subList(0,149);
             }
-            LOG.debug("Starting new batch processing for urls: " + Arrays.toString(downloadedWebsitesToProcessCopy.stream().map(DownloadedDocDTO::getSite).map(Website::getUrl).toArray()));
+            if(LOG.isDebugEnabled()) {
+                String websitesInFetch = Arrays.toString(downloadedWebsitesToProcessCopy.stream().map(DownloadedDocDTO::getSite).map(Website::getUrl).toArray());
+                LOG.debug(MessageFormat.format("Starting new batch processing for urls: {0}", websitesInFetch));
+            }
             task = new SaveDownloadedWebsiteToDbRunnable(downloadedWebsitesToProcessCopy);
             downloadedWebsitesToProcessCopy.forEach(downloadedWebsitesToProcess::remove);
         }

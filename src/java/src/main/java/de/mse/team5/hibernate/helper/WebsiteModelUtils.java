@@ -18,6 +18,7 @@ import org.jsoup.select.Elements;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.*;
 
 import static de.mse.team5.crawler.CrawlerFilters.fitsCrawlFilter;
@@ -91,7 +92,7 @@ public class WebsiteModelUtils {
             URL url = URI.create(linkUrl).toURL();
             formattedURL = formatLinkUrl(url);
         } catch (IllegalArgumentException | MalformedURLException e) {
-            LOG.warn("malformed url " + linkUrl, e);
+            LOG.warn(MessageFormat.format("malformed url {0}", linkUrl), e);
         }
         return formattedURL;
     }
@@ -119,7 +120,8 @@ public class WebsiteModelUtils {
         if (!fitsCrawlFilter(urlToCheck))
             return false;
         if (StringUtils.length(urlToCheck) > 2048) {
-            LOG.info("Skipping too long url: " + urlToCheck);
+            if(LOG.isInfoEnabled())
+                LOG.info(MessageFormat.format("Skipping too long url: {0}", urlToCheck));
             return false;
         }
         return true;
@@ -132,7 +134,7 @@ public class WebsiteModelUtils {
             dbSession.update(website);
             dbSession.getTransaction().commit();
         } catch (HibernateException e) {
-            LOG.warn("Failed to save website \"" + website.getUrl() + "\" to db due to ", e);
+            LOG.warn(MessageFormat.format("Failed to save website \"{0}\" to db due to ", website.getUrl()), e);
         }
     }
 
@@ -142,7 +144,7 @@ public class WebsiteModelUtils {
             dbSession.insert(website);
             dbSession.getTransaction().commit();
         } catch (HibernateException e) {
-            LOG.warn("Failed to save website \"" + website.getUrl() + "\" to db due to ", e);
+            LOG.warn(MessageFormat.format("Failed to save website \"{0}\" to db due to ", website.getUrl()), e);
         }
     }
 

@@ -9,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Collection;
@@ -93,7 +94,7 @@ public class Website {
             try {
                 this.urlObj = URI.create(this.url).toURL();
             } catch (MalformedURLException e) {
-                LOG.warn("Malformed url " + this.url, e);
+                LOG.warn(MessageFormat.format("Malformed url {0}", this.url), e);
                 this.urlObj = null;
             }
             this.calculatedUrlObj = true;

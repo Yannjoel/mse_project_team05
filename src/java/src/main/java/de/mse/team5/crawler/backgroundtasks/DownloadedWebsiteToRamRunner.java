@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Document;
 
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -48,7 +49,9 @@ public class DownloadedWebsiteToRamRunner implements Runnable {
      */
     private void fetchWebsite(Website site) {
         String siteUrl = site.getUrl();
-        LOG.debug("fetching " + siteUrl);
+        if(LOG.isDebugEnabled()) {
+            LOG.debug(MessageFormat.format("fetching {0}", siteUrl));
+        }
         //download website
         Document doc = null;
         if (getCrawlerNicenessHelper().isUrlAllowedByRobotsTxt(site)) {
@@ -71,6 +74,7 @@ public class DownloadedWebsiteToRamRunner implements Runnable {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {
             LOG.warn("Waiting interrupted due to ", e);
+            Thread.currentThread().interrupt();
         }
     }
 }

@@ -11,15 +11,21 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class providing information about crawl delay and allowed paths for websites
+ */
 public class CrawlerNicenessHelper {
 
     private static final String USER_AGENT = "mse_project_crawler";
     private static final int DEFAULT_CRAWL_DELAY_IN_SECONDS = 1;
+
+    //No need to introduce lazy load since the class is always required while running the crawler
     private static final Logger LOG = LogManager.getLogger(CrawlerNicenessHelper.class);
-    private static CrawlerNicenessHelper singletonInstance;
+    private static final CrawlerNicenessHelper singletonInstance = new CrawlerNicenessHelper();
     private final Map<String, RobotsTxt> cachedRobotsTxt;
 
     private CrawlerNicenessHelper() {
@@ -28,10 +34,11 @@ public class CrawlerNicenessHelper {
     }
 
 
+    /**
+     * CrawlerNicenessHelper should be a singleton to ensure that it's cache is used globally
+     * @return The singleton instance of the CrawlerNicenessHelper
+     */
     public static CrawlerNicenessHelper getCrawlerNicenessHelper() {
-        if (singletonInstance == null) {
-            singletonInstance = new CrawlerNicenessHelper();
-        }
         return singletonInstance;
     }
 
@@ -48,14 +55,14 @@ public class CrawlerNicenessHelper {
             //assume no restriction if there's no robots.txt
             return true;
         }
-        return getRobotsTextForUrl(hostUrl).query(USER_AGENT, urlPath);
+        return robotsTxt.query(USER_AGENT, urlPath);
     }
 
     public int getCrawlDelay(String host) {
-        //possible Todo: add caching in separate map
         int crawlDelay = DEFAULT_CRAWL_DELAY_IN_SECONDS;
-        if (getRobotsTextForUrl(host) != null) {
-            Grant grantedAccess = getRobotsTextForUrl(host).ask(USER_AGENT, "/");
+        RobotsTxt robotsTxt = getRobotsTextForUrl(host);
+        if (robotsTxt != null) {
+            Grant grantedAccess = robotsTxt.ask(USER_AGENT, "/");
             if (grantedAccess != null && grantedAccess.getCrawlDelay() != null) {
                 crawlDelay = grantedAccess.getCrawlDelay();
             }
@@ -81,7 +88,7 @@ public class CrawlerNicenessHelper {
                 try {
                     robotsTxt = RobotsTxt.read(inputStream);
                 } catch (IOException e) {
-                    LOG.warn("Failed to load robots txt at " + robotsTxtUrl + " due to ", e);
+                    LOG.warn(MessageFormat.format("Failed to load robots txt at {0} due to ", robotsTxtUrl), e);
                 }
                 this.cachedRobotsTxt.put(host, robotsTxt);
             }

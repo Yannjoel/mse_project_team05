@@ -53,4 +53,4 @@ if __name__ == "__main__":
         {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
     )
 
-    print(searcher(query="computer science", df=df, ranker_str="NeuralNetwork"))
+    print(searcher(query="food and drinks", df=df, ranker_str="TFIDF"))

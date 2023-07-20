@@ -14,11 +14,12 @@ class Features:
         self.title = kwargs.get("title", None)
         self.body = kwargs.get("body", None)
 
-
     def get_features(self):
         """returns features for all documents"""
         features = pd.DataFrame()
-        for name, docs in zip(["url", "title", "body"], [self.url, self.title, self.body]):
+        for name, docs in zip(
+            ["url", "title", "body"], [self.url, self.title, self.body]
+        ):
             if docs is not None:
                 features = pd.concat(
                     [features, self.get_features_for_docs(docs, name)], axis=1
@@ -29,14 +30,18 @@ class Features:
     def get_features_for_docs(self, docs, name):
         """helper function for get_features, returns features for a single document type"""
         bm25 = BM25(is_ranker=False)
-        tfidf = TfIdf(corpus=docs)
+        tfidf = TfIdf(is_ranker=False)
         features = pd.DataFrame()
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)
-        #features[name + "_idf"] = tfidf.get_idf(self.query)
+        # features[name + "_idf"] = tfidf.get_idf(self.query)
         features[name + "_vsm"] = tfidf.get_scores(self.query, docs)
 
-        features[name + "_covered_query_term_number"] = docs.apply(self.covered_query_term_number)
-        features[name + "_covered_query_term_ratio"] = docs.apply(self.covered_query_term_ratio)
+        features[name + "_covered_query_term_number"] = docs.apply(
+            self.covered_query_term_number
+        )
+        features[name + "_covered_query_term_ratio"] = docs.apply(
+            self.covered_query_term_ratio
+        )
         # features[name + "_stream_length"] = docs.apply(self.stream_length)
 
         # if name == "url":
@@ -44,7 +49,7 @@ class Features:
         #     features[name + "_n_slash"] = docs.apply(self.n_slash)
 
         return features
-        
+
     # functions only dependent on  single doc
     def covered_query_term_number(self, doc):
         """returns number of terms in doc that are also in query"""

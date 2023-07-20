@@ -32,16 +32,16 @@ class Features:
         tfidf = TfIdf(corpus=docs)
         features = pd.DataFrame()
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)
-        features[name + "_idf"] = tfidf.get_idf(self.query)
+        #features[name + "_idf"] = tfidf.get_idf(self.query)
         features[name + "_vsm"] = tfidf.get_scores(self.query, docs)
 
         features[name + "_covered_query_term_number"] = docs.apply(self.covered_query_term_number)
         features[name + "_covered_query_term_ratio"] = docs.apply(self.covered_query_term_ratio)
-        features[name + "_stream_length"] = docs.apply(self.stream_length)
+        # features[name + "_stream_length"] = docs.apply(self.stream_length)
 
-        if name == "url":
-            features[name + "_len_url"] = docs.apply(self.len_url)
-            features[name + "_n_slash"] = docs.apply(self.n_slash)
+        # if name == "url":
+        #     features[name + "_len_url"] = docs.apply(self.len_url)
+        #     features[name + "_n_slash"] = docs.apply(self.n_slash)
 
         return features
         

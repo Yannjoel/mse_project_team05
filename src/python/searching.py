@@ -7,6 +7,7 @@ def searcher(query, df, ranker_str="BM25"):
     # TODO: Implement variable length of results
     # TODO: TFIDF does not work yet (see RankingAlgorithms/tfidf.py)
     ranker = get_ranker(ranker_str)()
+    query = ranker.process_query(query)
     scores = ranker.get_scores(query, df)
 
     # calculate top-10 results and return titles and urls
@@ -53,4 +54,4 @@ if __name__ == "__main__":
         {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
     )
 
-    print(searcher(query="food and drinks", df=df, ranker_str="TFIDF"))
+    print(searcher(query="sports", df=df, ranker_str="RankSVM"))

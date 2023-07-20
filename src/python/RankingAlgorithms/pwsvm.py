@@ -72,8 +72,9 @@ class RankSVM(Ranker):
         else:
             raise ValueError("Must call fit() prior to predict()")
 
-    def save_coef(self, path="../models/ranksvm_coef.pkl"):
-        pickle.dump(self.model.coef_, open(path, "wb"))
+            
+    def save(self, path="../models/ranksvm.pkl"):
+        pickle.dump(self.model, open(path, "wb"))
 
-    def load_coef(self, path="src/python/models/ranksvm_coef.pkl"):
-        self.model.coef_ = pickle.load(open(path, "rb"))
+    def load_coef(self, path="src/python/models/ranksvm.pkl"):
+        self.model = pickle.load(open(path, "rb"))

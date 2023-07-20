@@ -1,33 +1,80 @@
-from Ranker.bmtf import BM25
-from Ranker.tfidf import TfIdf
-from Ranker.pwsvm import RankSVM
-from Ranker.neuralnetwork import NeuralNetwork
+import os
+from ranker import Ranker
+from RankingAlgorithms import *
+from DataHandling.db_reader import Reader
+from DataHandling.language_processing import remove_stopwords
 
-def searcher(query, df, ranker_str='bm25'):
 
+def searcher(query, df, ranker_str="BM25"):
+    """
+    returns top-10 results for a given query + scores of all documents
+    """
     # TODO: Implement variable length of results
-    # Not sure if this works yet. 
-    # It would be great if we could read the data from the database before we start this 
-    # function because I think this would be faster.     
-    if ranker_str == 'bm25':
-        ranker = BM25()
-    elif ranker_str == 'tfidf':
-        ranker = TfIdf()
-    elif ranker_str == 'pwsvm':
-        ranker = RankSVM()
-        ranker.load_model()
-    elif ranker_str == 'nn':
-        ranker = NeuralNetwork()
-        ranker.load_model()
-    else:
-        raise ValueError('Invalid ranker_str: {}'.format(ranker_str))
-    
-    scores = ranker.get_scores(query=query, docs=df['body'])
-    results = df[['url', 'title']].iloc[scores.argsort()[::-1][:10]].values
+    ranker = get_ranker(ranker_str)()
+    query = remove_stopwords(query)
+    scores = ranker.get_scores(query, df)
+
+    # calculate top-10 results and return titles and urls
+    top_10 = scores.argsort()[-10:][::-1]
+    titles = df["title"].iloc[top_10].values
+    urls = df["url"].iloc[top_10].values
+    top_10_scores = scores[top_10].round(3)
+
+    # store top-10 results in txt.file
+    path = uniquify("results/search_results.txt")
+    with open(path, "w") as f:
+        for i, (url, score) in enumerate(zip(urls, top_10_scores), start=1):
+            f.write(f"{i}.\t{url}\t{score}\n")
+
+    return titles, urls, scores
 
 
-    return results
+def uniquify(path):
+    """
+    source: https://stackoverflow.com/questions/13852700/create-file-but-if-name-exists-add-number
+    """
+    filename, extension = os.path.splitext(path)
+    counter = 1
+
+    while os.path.exists(path):
+        path = filename + " (" + str(counter) + ")" + extension
+        counter += 1
+
+    return path
 
 
-if __name__ == '__main__':
-    print('imports successful')
+def get_all_rankers():
+    """
+    returns all subclasses of Ranker
+    """
+    all_my_base_classes = {cls.__name__: cls for cls in Ranker.__subclasses__()}
+    return all_my_base_classes
+
+
+def get_ranker_names():
+    """
+    returns a list of the names of all subclasses
+    """
+    rankers = get_all_rankers()
+    names = [cls for cls in rankers.keys()]
+    return names
+
+
+def get_ranker(name: str):
+    """
+    returns the subclass given the name
+    """
+    rankers = get_all_rankers()
+    return rankers[name]
+
+
+if __name__ == "__main__":
+    # test get_all_rankers
+    import pandas as pd
+
+    r = Reader()
+    df = pd.DataFrame(
+        {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
+    )
+
+    print(searcher(query="sports", df=df, ranker_str="NeuralNetwork"))

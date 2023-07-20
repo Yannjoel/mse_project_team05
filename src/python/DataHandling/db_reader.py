@@ -8,9 +8,6 @@ class Reader:
             self.connection = database.connect(
                  user='python', password='python', host="localhost", database="mse_project")
             self.cursor = self.connection.cursor()
-            self.body = self.get_bodies()
-            self.title = self.get_titles()
-            self.url = self.get_urls()
     
         def get_all_data(self):
             sql_statement = 'SELECT * FROM website'

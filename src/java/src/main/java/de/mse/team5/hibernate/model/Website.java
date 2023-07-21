@@ -8,6 +8,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -26,7 +27,7 @@ public class Website {
     @GeneratedValue(strategy=GenerationType.AUTO)
     Long id;
 
-    @Column(length = 2048, columnDefinition = "varchar(2048)")
+    @Column(length = 8192, columnDefinition = "varchar(8192)")
     private String url;
 
     @Basic
@@ -38,7 +39,7 @@ public class Website {
     @Column(columnDefinition = "LONGTEXT")
     private String body;
 
-    @Basic
+    @Column(length = 4096, columnDefinition = "varchar(4096)")
     private String title;
 
     @Basic
@@ -93,8 +94,8 @@ public class Website {
         if (!this.calculatedUrlObj) {
             try {
                 this.urlObj = URI.create(this.url).toURL();
-            } catch (MalformedURLException e) {
-                LOG.warn(MessageFormat.format("Malformed url {0}", this.url), e);
+            } catch (IllegalArgumentException | MalformedURLException e) {
+                LOG.debug(MessageFormat.format("Malformed url {0}", this.url), e);
                 this.urlObj = null;
             }
             this.calculatedUrlObj = true;

@@ -21,28 +21,10 @@ public class HibernateUtil {
     private static final Logger LOG = LogManager.getLogger(HibernateUtil.class);
 
     private StandardServiceRegistry registry;
-    private final SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
 
-    private HibernateUtil(){
-        try {
-            // Create registry
-            registry = new StandardServiceRegistryBuilder().configure().build();
-
-            MetadataSources sources = new MetadataSources(registry);
-            //Added new hibernate classes here to enable the creation of the corresponding db- structure
-            sources.addAnnotatedClass(Website.class);
-            // Create Metadata
-            Metadata metadata = sources.getMetadataBuilder().build();
-
-            // Create SessionFactory
-            sessionFactory = metadata.getSessionFactoryBuilder().build();
-        } catch (Exception e) {
-            LOG.fatal("Failed to create DB connection due to ", e);
-            if (registry != null) {
-                StandardServiceRegistryBuilder.destroy(registry);
-            }
-            throw new CrawlerDbConnectionFailedException("Failed to initialize db connection - terminating");
-        }
+    public HibernateUtil(){
+       //prevent initialization
     }
 
     public static HibernateUtil getSingletonInstance(){
@@ -54,6 +36,27 @@ public class HibernateUtil {
     }
 
     public SessionFactory getSessionFactory() {
+        if(sessionFactory == null){
+            try {
+                // Create registry
+                registry = new StandardServiceRegistryBuilder().configure().build();
+
+                MetadataSources sources = new MetadataSources(registry);
+                //Added new hibernate classes here to enable the creation of the corresponding db- structure
+                sources.addAnnotatedClass(Website.class);
+                // Create Metadata
+                Metadata metadata = sources.getMetadataBuilder().build();
+
+                // Create SessionFactory
+                sessionFactory = metadata.getSessionFactoryBuilder().build();
+            } catch (Exception e) {
+                LOG.warn("Failed to create DB connection due to ", e);
+                if (registry != null) {
+                    StandardServiceRegistryBuilder.destroy(registry);
+                }
+                throw new CrawlerDbConnectionFailedException("Failed to initialize db connection - terminating");
+            }
+        }
         return sessionFactory;
     }
     public void shutdown() {

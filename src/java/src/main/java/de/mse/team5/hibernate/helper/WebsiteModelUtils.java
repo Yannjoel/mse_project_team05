@@ -92,7 +92,7 @@ public class WebsiteModelUtils {
             URL url = URI.create(linkUrl).toURL();
             formattedURL = formatLinkUrl(url);
         } catch (IllegalArgumentException | MalformedURLException e) {
-            LOG.warn(MessageFormat.format("malformed url {0}", linkUrl), e);
+            LOG.debug(MessageFormat.format("malformed url {0}", linkUrl), e);
         }
         return formattedURL;
     }
@@ -119,7 +119,7 @@ public class WebsiteModelUtils {
     private boolean linkShouldBeCrawled(String urlToCheck) {
         if (!fitsCrawlFilter(urlToCheck))
             return false;
-        if (StringUtils.length(urlToCheck) > 2048) {
+        if (StringUtils.length(urlToCheck) > 8192) {
             if(LOG.isInfoEnabled())
                 LOG.info(MessageFormat.format("Skipping too long url: {0}", urlToCheck));
             return false;

@@ -275,7 +275,7 @@ public class MultithreadedCrawler {
      */
     private void addWebsiteToAsynchronousProcessing() {
         //only run if there are multiple websites to queue to prevent overhead
-        if(downloadedWebsitesToProcess.size() < 25){
+        if(downloadedWebsitesToProcess.size() < 25 && !currentlyCrawledHosts.isEmpty()){
             return;
         }
         Runnable task;

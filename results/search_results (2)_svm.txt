@@ -1,0 +1,10 @@
+1.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_T%C3%BCbingen	0.12
+2.	http://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Tübingen?oldid=753961604&ns=14?oldid=753961604&ns=14	0.083
+3.	http://dbpedia.org/resource/Category:Tourist_attractions_in_Tübingen	0.033
+4.	https://virtualglobetrotting.com/ll/48.52,9.055556	0.013
+5.	https://www.tripadvisor.com/LocationPhotoDirectLink-g198539-i17734081-Tubingen_Baden_Wurttemberg.html	0.012
+6.	https://www.tripadvisor.com/LocationPhotoDirectLink-g198539-i17734068-Tubingen_Baden_Wurttemberg.html	0.012
+7.	https://www.tripadvisor.com/RentalCars-g198539-Tubingen_Baden_Wurttemberg.html	0.012
+8.	http://ezb.uni-regensburg.de/fl.phtml?bibid=UBTUE&colors=7&lang=en&notation=ZX-ZY&sc=&lc=B&sindex=50?bibid=UBTUE&colors=7&lang=en&notation=ZX-ZY&sc=&lc=B&sindex=50	0.009
+9.	https://www.tripadvisor.com/FAQ-g198539-d7186410-BOXENSTOP_Museum.html	0.009
+10.	https://www.tripadvisor.com/FAQ-g198539-d521962-Holderlin_s_Tower_Holderlinturm.html	0.009

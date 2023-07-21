@@ -1,0 +1,10 @@
+1.	https://uni-tuebingen.de/en/university/news-and-publications/press-releases/press-releases/article/ravens-were-attracted-to-humans-food-more-than-30000-years-ago/	0.173
+2.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1040175-r333145599-Schranners_Waldhorn-Tubingen_Baden_Wurttemberg.html	0.106
+3.	https://www.tripadvisor.com/ShowUserReviews-g198539-d2516480-r597563376-Samphat_Thai-Tubingen_Baden_Wurttemberg.html	0.104
+4.	https://www.tripadvisor.com/ShowUserReviews-g198539-d7712634-r422539965-Ban_Mai-Tubingen_Baden_Wurttemberg.html	0.098
+5.	https://www.tripadvisor.com/ShowUserReviews-g198539-d5852375-r802755290-Lustnauer_Muhle-Tubingen_Baden_Wurttemberg.html	0.096
+6.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1027046-r671792511-Gasthausbrauerei_Neckarmuller-Tubingen_Baden_Wurttemberg.html	0.094
+7.	https://www.tripadvisor.com/ShowUserReviews-g198539-d2516480-r672156720-Samphat_Thai-Tubingen_Baden_Wurttemberg.html	0.09
+8.	https://www.tripadvisor.com/ShowUserReviews-g198539-d2516480-r539215832-Samphat_Thai-Tubingen_Baden_Wurttemberg.html	0.089
+9.	https://www.tripadvisor.com/ShowUserReviews-g198539-d23305399-r888578232-Caro_s_Restaurant-Tubingen_Baden_Wurttemberg.html	0.086
+10.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1027046-r672422908-Gasthausbrauerei_Neckarmuller-Tubingen_Baden_Wurttemberg.html	0.085

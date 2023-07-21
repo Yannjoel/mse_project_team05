@@ -1,0 +1,10 @@
+1.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_T%C3%BCbingen	8.919
+2.	http://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Tübingen?oldid=753961604&ns=14?oldid=753961604&ns=14	8.789
+3.	http://dbpedia.org/resource/Category:Tourist_attractions_in_Tübingen	8.661
+4.	https://www.tripadvisor.com/Hotel_Review-g198539-d1219552-Reviews-GaesteEtage_Im_Viktor_Renner_Haus-Tubingen_Baden_Wurttemberg.html	7.43
+5.	https://www.tripadvisor.com/Attractions-g663665-Activities-Gomaringen_Baden_Wurttemberg.html	7.368
+6.	https://www.tripadvisor.com/Attractions-g1081226-Activities-Moessingen_Baden_Wurttemberg.html	7.295
+7.	https://www.tripadvisor.com/Hotel_Review-g198539-d15364020-Reviews-Jugendherberge_Tubingen-Tubingen_Baden_Wurttemberg.html	7.172
+8.	https://www.tripadvisor.com/Hotel_Review-g198539-d3493476-Reviews-Schloss_Muehle-Tubingen_Baden_Wurttemberg.html	7.165
+9.	https://www.tripadvisor.com/Hotel_Review-g198539-d19976790-Reviews-Zimmerwirtin_Blume-Tubingen_Baden_Wurttemberg.html	7.129
+10.	https://www.tripadvisor.com/Hotel_Review-g198539-d3670746-Reviews-Mein_Domizil-Tubingen_Baden_Wurttemberg.html	7.106

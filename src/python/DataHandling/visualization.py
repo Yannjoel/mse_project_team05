@@ -3,9 +3,10 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 
 from sklearn.feature_extraction.text import TfidfVectorizer
-from db_reader import Reader
-
 import matplotlib.pyplot as plt
+
+from db_reader import Reader
+from language_processing import remove_stopwords
 
 ### Not sure yet. Probably better if we just store the coordinates since they are fixed after crawling?
 
@@ -15,6 +16,9 @@ titles = r.get_titles()
 urls = r.get_urls()
 
 vectorizer = TfidfVectorizer()
+# remove stopwords
+bodies = [remove_stopwords(body) for body in bodies]
+
 features = vectorizer.fit_transform(bodies)
 
 # PCA

@@ -1,0 +1,10 @@
+1.	https://uni-tuebingen.de/en/university/news-and-publications/press-releases/press-releases/article/ravens-were-attracted-to-humans-food-more-than-30000-years-ago/	0.1979999989271164
+2.	https://fit.uni-tuebingen.de/Project/Details?id=10364	0.1469999998807907
+3.	https://www.my-stuwe.de/en/refectory/allergens/	0.1379999965429306
+4.	http://cyber-valley.de/en/events/aixia-ai-conference-2020	0.1289999932050705
+5.	https://www.my-stuwe.de/en/refectory/	0.11699999868869781
+6.	https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/psychology/research-groups/clinical-psychology-and-psychotherapy/outpatient-clinic/	0.11599999666213989
+7.	https://uni-tuebingen.de/en/research/centers-and-institutes/international-center-for-ethics-in-the-sciences-and-humanities/research/nature-and-sustainable-development/bioeconomy/	0.11500000208616257
+8.	https://uni-tuebingen.de/en/research/centers-and-institutes/international-center-for-ethics-in-the-sciences-and-humanities/teaching/studium-oecologicum/	0.11299999803304672
+9.	http://cyber-valley.de/en/news/cyber-valley-adds-five-shooting-stars-to-its-start-up-network	0.1080000028014183
+10.	https://uni-tuebingen.de/en/research/centers-and-institutes/international-center-for-ethics-in-the-sciences-and-humanities/research/nature-and-sustainable-development/oeko-valuation/	0.09700000286102295

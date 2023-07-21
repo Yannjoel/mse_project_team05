@@ -1,0 +1,10 @@
+1.	http://ezb.uni-regensburg.de/ezeit/fl.phtml?bibid=UBTUE&colors=1&lang=en&notation=ALL&sc=F&lc=G&sindex=1200?bibid=UBTUE&colors=1&lang=en&notation=ALL&sc=F&lc=G&sindex=1200	0.383
+2.	http://ezb.uni-regensburg.de/ezeit/fl.phtml?bibid=UBTUE&colors=1&lang=de&notation=ALL&sc=F&lc=G&sindex=1200?bibid=UBTUE&colors=1&lang=de&notation=ALL&sc=F&lc=G&sindex=1200	0.359
+3.	http://imprs.is.mpg.de/events/imprs-is-think-link-july	0.199
+4.	https://www.tripadvisor.com/Profile/DrHermannJosefT	0.194
+5.	http://imprs.is.mpg.de/events/think-link-march-july-2023	0.186
+6.	http://imprs.is.mpg.de/events/think-link-october-2023	0.185
+7.	http://imprs.is.mpg.de/events/think-link-march-2023	0.182
+8.	http://ezb.uni-regensburg.de/ezeit/fl.phtml?bibid=UBTUE&colors=1&lang=en&notation=ALL&sc=F&lc=G&sindex=1150?bibid=UBTUE&colors=1&lang=en&notation=ALL&sc=F&lc=G&sindex=1150	0.178
+9.	http://imprs.is.mpg.de/events/imprs-is-think-link-april	0.177
+10.	http://imprs.is.mpg.de/events/imprs-is-think-link-may-4	0.176

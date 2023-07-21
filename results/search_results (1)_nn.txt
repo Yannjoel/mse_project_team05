@@ -1,0 +1,10 @@
+1.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1344207-r584404527-Mauganeschtle-Tubingen_Baden_Wurttemberg.html	0.28700000047683716
+2.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1344207-r568509821-Mauganeschtle-Tubingen_Baden_Wurttemberg.html	0.2770000100135803
+3.	https://www.my-stuwe.de/en/refectory/	0.2720000147819519
+4.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1884995-r601709023-Historische_Weinstube_Forelle-Tubingen_Baden_Wurttemberg.html	0.26600000262260437
+5.	https://www.tripadvisor.com/ShowUserReviews-g198539-d1884995-r629799444-Historische_Weinstube_Forelle-Tubingen_Baden_Wurttemberg.html	0.25999999046325684
+6.	https://en.wikipedia.org/wiki/Disposable_food_packaging	0.2529999911785126
+7.	https://www.tripadvisor.com/Profile/DrHermannJosefT	0.23100000619888306
+8.	https://www.tripadvisor.com/Restaurant_Review-g198539-d1347081-Reviews-Delhi_Palace-Tubingen_Baden_Wurttemberg.html	0.22699999809265137
+9.	http://cyber-valley.de/en/events/2023-studinight-ki-makerspace	0.2150000035762787
+10.	https://www.tripadvisor.com/Profile/jman1076	0.21299999952316284

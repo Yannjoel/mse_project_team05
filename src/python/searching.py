@@ -1,4 +1,5 @@
 import os
+import time
 from ranker import Ranker
 from RankingAlgorithms import *
 from DataHandling.db_reader import Reader
@@ -73,8 +74,12 @@ if __name__ == "__main__":
     import pandas as pd
 
     r = Reader()
+
     df = pd.DataFrame(
         {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
     )
-
-    print(searcher(query="sports", df=df, ranker_str="NeuralNetwork"))
+    print('start querying on df of length', len(df))
+    start = time.time()
+    searcher(query="tübingen attractions", df=df, ranker_str="TfIdf")
+    end = time.time()
+    print(f"Time elapsed: {end-start}")

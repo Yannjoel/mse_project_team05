@@ -1,5 +1,6 @@
 import os
 import time
+from sklearn.metrics.pairwise import cosine_similarity
 from ranker import Ranker
 from RankingAlgorithms import *
 from DataHandling.db_reader import Reader
@@ -14,9 +15,10 @@ def searcher(query, df, ranker_str="BM25"):
     ranker = get_ranker(ranker_str)()
     query = remove_stopwords(query)
     scores = ranker.get_scores(query, df)
+    top_10 = diversify_results(scores, df)
 
     # calculate top-10 results and return titles and urls
-    top_10 = scores.argsort()[-10:][::-1]
+    #top_10 = scores.argsort()[-10:][::-1]
     titles = df["title"].iloc[top_10].values
     urls = df["url"].iloc[top_10].values
     top_10_scores = scores[top_10].round(3)
@@ -28,6 +30,21 @@ def searcher(query, df, ranker_str="BM25"):
             f.write(f"{i}.\t{url}\t{score}\n")
 
     return titles, urls, scores
+
+
+def diversify_results(scores, df, threshold=0.05):
+    """
+    returns a list of indices of the top-10 results
+    """
+    sorted_scores = scores.argsort()[-50:][::-1]
+    top_ten = []
+    while top_ten < 10:
+        candidate = sorted_scores.pop(0)
+        if cosine_similarity(df["title_embedding"].iloc[candidate], df["title_embedding"].iloc[top_ten]) > threshold:
+            top_ten.append(sorted_scores.pop(0))
+    return top_ten
+        
+
 
 
 def uniquify(path):

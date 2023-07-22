@@ -5,25 +5,23 @@ from language_processing import preprocess
 
 import numpy as np
 
-test = np.array(range(10))
-
 # load data
+print("Reading data...")
 reader = Reader()
-# titles = reader.get_titles()
-# bodies = reader.get_bodies()
+titles = reader.get_titles()
+bodies = reader.get_bodies()
+print("Reading data done")
 
 
-# # preprocess data
-# titles_processed = [preprocess(title) for title in titles]
-# bodies_processed = [preprocess(body) for body in bodies]
+# preprocess data
+print("preprocessing...")
+titles_processed = [preprocess(title) for title in titles]
+bodies_processed = [preprocess(body) for body in bodies]
+print("preprocessing done")
 
-
-# # write data to database
-# reader.write_column('title_processed', titles_processed)
-# reader.write_column('body_processed', bodies_processed)
-reader.write_column('test', test)
-
-print(reader.read_column('test'))
+# store as npy-files
+np.save("data/titles_processed.npy", titles_processed)
+np.save("data/bodies_processed.npy", bodies_processed)
+print("Storing data done")
 
 reader.close()
-

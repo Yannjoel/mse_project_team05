@@ -34,3 +34,15 @@ class BM25(Ranker):
         scores = idf @ frac
 
         return scores
+    
+    def advanced_get_scores(self, query, df):
+        if self.is_ranker:
+            docs = df["body"]
+        else:
+            docs = df
+        avgdl = np.mean([len(doc.split()) for doc in docs])
+        N = len(docs)
+        query = np.array(query.split())
+        n_q = np.apply_along_axis(lambda doc: np.apply_along_axis(lambda x: x in doc, 0, query).sum(), 0, docs)
+        
+

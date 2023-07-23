@@ -192,4 +192,4 @@ def my_form_post_tsne():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    create_scatter_initial()
+    # create_scatter_initial()

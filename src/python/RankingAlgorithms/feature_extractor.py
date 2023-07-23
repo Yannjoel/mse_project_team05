@@ -26,11 +26,13 @@ class Features:
     def get_features_for_docs(self, docs, name):
         """helper function for get_features, returns features for a single document type"""
         bm25 = BM25(is_ranker=False)
-        tfidf = TfIdf(is_ranker=False)
+
         features = pd.DataFrame()
         features[name + "_bm25"] = bm25.get_scores(self.query, docs)
         # features[name + "_idf"] = tfidf.get_idf(self.query)
-        features[name + "_vsm"] = tfidf.get_scores(self.query, docs)
+
+        tfidf = TfIdf(vec_name=name)
+        features[name + "_vsm"] = tfidf.get_scores(self.query)
 
         features[name + "_covered_query_term_number"] = docs.apply(
             self.covered_query_term_number
@@ -60,7 +62,7 @@ class Features:
             else 0
         )
 
-    def stream_length(self, doc):  # TODO could be precomputed (independent of query)
+    def stream_length(self, doc):
         """returns length of doc"""
         return len(doc.split())
 
@@ -71,7 +73,3 @@ class Features:
     def n_slash(self, doc):
         """returns number of slashes in url"""
         return doc.count("/")
-
-
-if __name__ == "__main__":
-    features = Features(query="food and drinks")

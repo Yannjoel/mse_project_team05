@@ -1,0 +1,10 @@
+1.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Baden-W%C3%BCrttemberg	9.893
+2.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_T%C3%BCbingen	9.599
+3.	http://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Tübingen?oldid=753961604&ns=14?oldid=753961604&ns=14	9.455
+4.	http://dbpedia.org/resource/Category:Tourist_attractions_in_Tübingen	9.319
+5.	https://en.wikipedia.org/w/index.php?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&direction=prev&oldid=963801762?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&direction=prev&oldid=963801762	8.954
+6.	https://www.tripadvisor.com/Attractions-g1081226-Activities-c26-Moessingen_Baden_Wurttemberg.html	8.603
+7.	https://www.tripadvisor.com/Hotel_Review-g198539-d23259419-Reviews-Appartements_am_Schloss-Tubingen_Baden_Wurttemberg.html	8.169
+8.	https://www.tripadvisor.com/Hotel_Review-g1587120-d3659262-Reviews-Atelier_Wittke-Kusterdingen_Baden_Wurttemberg.html	8.136
+9.	https://en.wikipedia.org/w/index.php?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&diff=prev&oldid=963801762?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&diff=prev&oldid=963801762	8.08
+10.	https://www.tripadvisor.com/Hotel_Review-g198539-d1219552-Reviews-GaesteEtage_Im_Viktor_Renner_Haus-Tubingen_Baden_Wurttemberg.html	7.946

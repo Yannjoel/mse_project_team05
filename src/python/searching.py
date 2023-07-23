@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from ranker import Ranker
 from RankingAlgorithms import *
@@ -7,44 +8,44 @@ from DataHandling.db_reader import Reader
 from DataHandling.language_processing import remove_stopwords
 
 
-def searcher(query, df, ranker_str="BM25"):
+def searcher(query, df, ranker_str="NeuralNetwork", topk=10):
     """
-    returns top-10 results for a given query + scores of all documents
+    returns top-k results for a given query + scores of all documents
     """
-    # TODO: Implement variable length of results
     ranker = get_ranker(ranker_str)()
     query = remove_stopwords(query)
-    scores = ranker.get_scores(query, df)
-    top_10 = diversify_results(scores, df)
+    scores = ranker.get_scores(query=query, df=df)
+    sorted_indices = scores.argsort()[::-1]
 
-    # calculate top-10 results and return titles and urls
-    #top_10 = scores.argsort()[-10:][::-1]
-    titles = df["title"].iloc[top_10].values
-    urls = df["url"].iloc[top_10].values
-    top_10_scores = scores[top_10].round(3)
+    # calculate top-k results and return titles and urls
+    top_k = diversify(df["title"].values, sorted_indices, topk)
+    titles = df["title"].iloc[top_k].values
+    urls = df["url"].iloc[top_k].values
+    top_k_scores = scores[top_k].round(3)
 
-    # store top-10 results in txt.file
+    # store top-k results in txt.file
     path = uniquify("results/search_results.txt")
     with open(path, "w") as f:
-        for i, (url, score) in enumerate(zip(urls, top_10_scores), start=1):
+        for i, (url, score) in enumerate(zip(urls, top_k_scores), start=1):
             f.write(f"{i}.\t{url}\t{score}\n")
 
     return titles, urls, scores
 
 
-def diversify_results(scores, df, threshold=0.05):
+def diversify(titles, sorted_indices, topk=10):
     """
-    returns a list of indices of the top-10 results
+    returns a list of indices of the top-10 results by checking whether there are some duplicates in the titles
     """
-    sorted_scores = scores.argsort()[-50:][::-1]
-    top_ten = []
-    while top_ten < 10:
-        candidate = sorted_scores.pop(0)
-        if cosine_similarity(df["title_embedding"].iloc[candidate], df["title_embedding"].iloc[top_ten]) > threshold:
-            top_ten.append(sorted_scores.pop(0))
-    return top_ten
-        
-
+    titles = titles[sorted_indices]
+    top_k = []
+    top_k_titles = []
+    i = 0
+    while len(top_k) < topk and i < len(titles):
+        if titles[i] not in top_k_titles:
+            top_k.append(sorted_indices[i])
+            top_k_titles.append(titles[i])
+        i += 1
+    return top_k
 
 
 def uniquify(path):
@@ -71,7 +72,7 @@ def get_all_rankers():
 
 def get_ranker_names():
     """
-    returns a list of the names of all subclasses
+    returns a list of the names of all subclasses of Ranker
     """
     rankers = get_all_rankers()
     names = [cls for cls in rankers.keys()]
@@ -80,7 +81,7 @@ def get_ranker_names():
 
 def get_ranker(name: str):
     """
-    returns the subclass given the name
+    returns the subclass given the ranker name
     """
     rankers = get_all_rankers()
     return rankers[name]
@@ -90,13 +91,15 @@ if __name__ == "__main__":
     # test get_all_rankers
     import pandas as pd
 
-    r = Reader()
-
     df = pd.DataFrame(
-        {"url": r.get_urls(), "body": r.get_bodies(), "title": r.get_titles()}
+        {
+            "url": np.load("data/urls.npy", allow_pickle=True),
+            "body": np.load("data/bodies.npy", allow_pickle=True),
+            "title": np.load("data/titles.npy", allow_pickle=True),
+        }
     )
-    print('start querying on df of length', len(df))
+    print("start querying on df of length", len(df))
     start = time.time()
-    searcher(query="tübingen attractions", df=df, ranker_str="TfIdf")
+    print(searcher(query="bars Tübingen", df=df, ranker_str="NeuralNetwork", topk=10))
     end = time.time()
     print(f"Time elapsed: {end-start}")

@@ -1,0 +1,10 @@
+1.	http://dbpedia.org/resource/Category:Tourist_attractions_in_Tübingen	0.3479999899864197
+2.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Baden-W%C3%BCrttemberg	0.34599998593330383
+3.	https://en.wikipedia.org/wiki/Category:Tourist_attractions_in_T%C3%BCbingen	0.3409999907016754
+4.	http://en.wikipedia.org/wiki/Category:Tourist_attractions_in_Tübingen?oldid=753961604&ns=14?oldid=753961604&ns=14	0.3400000035762787
+5.	https://en.wikipedia.org/w/index.php?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&direction=prev&oldid=963801762?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&direction=prev&oldid=963801762	0.16200000047683716
+6.	https://www.tripadvisor.com/Attractions-g1081226-Activities-c26-Moessingen_Baden_Wurttemberg.html	0.15800000727176666
+7.	https://www.tripadvisor.com/Hotel_Review-g198539-d23259419-Reviews-Appartements_am_Schloss-Tubingen_Baden_Wurttemberg.html	0.14499999582767487
+8.	https://www.tripadvisor.com/Hotel_Review-g1587120-d3659262-Reviews-Atelier_Wittke-Kusterdingen_Baden_Wurttemberg.html	0.14399999380111694
+9.	https://en.wikipedia.org/w/index.php?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&diff=prev&oldid=963801762?title=Category:Universities_and_colleges_in_Baden-W%C3%BCrttemberg&diff=prev&oldid=963801762	0.14399999380111694
+10.	https://www.tripadvisor.com/Attractions-g1081226-Activities-c49-Moessingen_Baden_Wurttemberg.html	0.1420000046491623

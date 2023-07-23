@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/css/tsne_list.css">
+</head>
+<body>
+    <script>
+      var htmlwidth = "{{data.width}}";
+      var htmlheight = "{{data.height}}";
+      var color = "{{data.color}}"; 
+      function bigImg(x) {
+        console.log(document.getElementById('circle-'+x.id).getAttribute('r'));
+        //d3.select('#circle-'+x.id).style("fil", 100);
+        d3.select('#circle-'+x.id).style("fill", "red");
+        d3.select('#circle-'+x.id).style("stroke", "red");
+        /*d3.selectAll("circle").style("fill", "pink");
+        /*console.log("Hallo");
+        const circle = document.getElementById('circle'); // get the circle element
+        const radius = circle.getAttribute('r'); // get the current value of the "r" attribute
+        console.log(radius);
+        document.getElementById('circle').setAttribute('r', 1);
+        console.log(gScatterPlot);*/
+      }
+      function out(x){
+        d3.select('#circle-'+x.id).style("fill", "black");
+        d3.select('#circle-'+x.id).style("stroke", "black");
+      }
+    </script>
+    <form method="POST"> 
+      <div class="header">
+        
+        <img src='/static/logo.png' class="imggeneral" width="10%" height="auto">
+        
+        <div class="searchbardiv">
+          <input type="text" name="search" class="searchbarinput" placeholder="{{data.search}}">
+          <input list="browsers" name="ranker" id="browser" class="searchbarranker" placeholder="BM25" default="BM25">
+          <datalist id="browsers">
+            <option value="BM25">
+            <option value="NN">
+          </datalist>
+        </div>
+      
+       
+        
+        
+      <input list="zooms" name="zoom" id="zoom" class="zoom" placeholder="Zoom-factor 3">
+      <datalist id="zooms">
+        <option value="Zoom-factor 1">
+        <option value="Zoom-factor 2">
+        <option value="Zoom-factor 3">
+        <option value="Zoom-factor 4">
+        <option value="Zoom-factor 5">
+      </datalist>
+      
+      
+      <input type="checkbox" id="colormap" name="colormap" value="true">
+      <label class='label' for="colormap"> Relevance by color</label>
+      
+      <input type="checkbox" id="size" name="size" value="true">
+      <label for="size"> Relevance by size</label>
+      <input type="checkbox" id="list" name="list" value="true">
+      <label for="list"> Result list</label>
+      
+      </div>
+      <input type="submit" id="submitbutton" class="submitbutton" value=""></form>
+      
+      </form>
+    
+    <div class="container">
+    <div class="search-results">
+      {% for item in data.data %}
+      <div onmouseover="bigImg(this)" onmouseout="out(this)" id="{{item.id}}" onclick="location.href='{{item.url}}'" class="result">
+        <h2> <a> {{item.title}} </a></h2>
+        <p class="description"> URL: {{item.url_display}}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="scatter" id="scatter">
+    </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scatter_list.js') }}"></script>
+
+</body>
+</html>

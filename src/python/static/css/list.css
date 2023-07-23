@@ -1,0 +1,147 @@
+.search-results {
+    display: block;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: space-between;
+  }
+  
+  .visualize{
+    height: 25px;
+    width: 200px;
+    background-color: black;
+    border:none;
+    border-radius: 5px;
+    display: inline-block;
+    margin-left: 10px;
+    text-align: center; 
+    right: 10px; 
+    top: 6px;
+    color: white; 
+    cursor: pointer;
+  }
+
+
+  .result {
+    display: block;
+    /*margin-left: 15%;*/
+    margin-left: 185px;  
+    margin-right: auto; 
+    align-items: center;
+    width: calc(33.33% - 30px);
+    background-color: #fff;
+    /*padding: 40px 30px;*/
+    padding: 10px 10px; 
+    border-radius: 10px;
+    /*box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);*/
+    transition: transform 0.2s ease-in-out;
+    margin-top: 10px; 
+    cursor: pointer;
+  }
+  
+  .result:hover {
+      transform: translateY(-10px);
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .result .number {
+    font-size: 50px;
+    font-weight: bold;
+    color: #1f2933;
+    margin-right: 20px;
+  }
+  
+  .result h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #1f2933;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  .result .subheading {
+    font-size: 18px;
+    color: #4b5563;
+    margin-bottom: 20px;
+  }
+  
+  .result p.description {
+    margin: 0 0 0px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #6b7280;
+  }
+
+  .result p.description2 {
+    margin: 0 0 20px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #6b7280;
+  }
+
+  .imggeneral{
+    width: 80px;
+    height: auto;
+    margin-left: 70px;
+  }
+
+
+  .header{
+    display: flex;
+    align-items: center;
+    height: 100px; 
+    width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 2px -2px gray;
+  }
+
+  .searchbardiv{
+    height: 40px;
+    position: relative;
+    letter-spacing: 2px;
+    border-radius: 25px;
+    padding-right: 40px;
+    color:#0e0d0d;
+    border:1px solid #0e0d0d;
+    background-color: transparent;
+    width: 500px;
+    margin-left: 40px; 
+  }
+
+  .searchbarinput{
+    height: 41px;
+    letter-spacing: 2px;
+    color:#0e0d0d;
+    font-size: 16px;
+    font-weight: 100;
+    border:none;
+    background-color: transparent;
+    width: 300px;
+    margin-left: 10px; 
+    outline: none;
+  }
+
+  .searchbarranker{
+    height: 25px;
+    width: 75px;
+    background-color: pink;
+    border:none;
+    border-radius: 25px;
+    display: inline-block;
+    margin-left: 10px;
+    text-align: center; 
+    position: absolute; 
+    right: 10px; 
+    top: 6px; 
+     
+  }
+
+  .submitbutton{
+    background-color: white;
+    border: none;
+    height: 1px; 
+    width: 1px; 
+  }
+
+
+  
+  

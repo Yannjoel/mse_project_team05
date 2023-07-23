@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/css/list.css">
+</head>
+<body>
+    <div class="header">
+      <img src='/static/logo.png' class="imggeneral" width="10%" height="auto">
+      <div class="searchbardiv">
+        
+        <form method="POST"><input type="text" name="i1" class="searchbarinput" placeholder="{{data.search}}"> 
+        <input list="browsers" name="i2" id="browser" class="searchbarranker" placeholder="BM25" default="BM25">
+        <datalist id="browsers">
+          <option value="BM25">
+          <option value="NN">
+        </datalist>
+      </div>
+    </form>
+      <input type="submit" id="submitbutton" class="submitbutton"></form>
+      <button class="visualize" onclick="window.location.href = 'http://127.0.0.1:5000/tsne';"><b>Visualize your search result</b></button>
+    </div>
+    
+    
+    <div class="search-results">
+      {% for item in data.data %}
+      <div onclick="location.href='{{item.url}}'" class="result">
+        <h2> <a> {{item.title}} </a></h2>
+        <p class="description"> URL: {{item.url_display}}</p>
+        <p class="description2"> Score: {{item.score}}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+</body>
+</html>

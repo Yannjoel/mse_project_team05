@@ -48,6 +48,5 @@ derby.log
 /.profileconfig.json
 
 # Data
-/data/**
-/MSLR-WEB10K/**
+src/python/data/**
 

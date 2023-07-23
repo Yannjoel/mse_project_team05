@@ -3,6 +3,8 @@ This is the repository for the final project in 'Modern Search Engines'. The tas
 
 ## How to run
 
+Before the project-specific steps please clone this GitHub repository.
+
 ### Crawler
 Our Crawler is implemented in Java. We are using Maven to download our dependencies.
 The following prerequisites are required to run the crawler:
@@ -21,12 +23,25 @@ If all prerequisites are met, the following steps can be used to run the crawler
 
 We strongly recommend to also run the following sql script in the database to create indices for a speedup of the crawling process:
 
+```command
+CREATE INDEX website_relevantForSearch_IDX 
+  USING BTREE ON [DB_NAME].website (relevantForSearch);
+```
+```command
+CREATE INDEX website_lastChanged_IDX 
+  USING BTREE ON [DB_NAME].website (lastChanged,stagedForCrawling);
+```
+```command
+CREATE INDEX website_url_IDX USING HASH ON 
+  [DB_NAME].website (url (768));
+```
 
-  CREATE INDEX website_relevantForSearch_IDX 
-      USING BTREE ON [DB_NAME].website (relevantForSearch);
+### Interface/App
 
-  CREATE INDEX website_lastChanged_IDX 
-      USING BTREE ON [DB_NAME].website (lastChanged,stagedForCrawling);
+Once you have a database with Tübingen-related content available on your machine you can follow these steps to start our search engine.
 
-  CREATE INDEX website_url_IDX USING HASH ON 
-      [DB_NAME].website (url (768));
+1. Create a new environment from the requirements.txt-file.
+2. Run the jupyter-notebooks Preprocessing.ipynb, Training.ipynb and Visualization.ipynb in the given order.
+3. Open a terminal in the project folder and run *python src/python/app.py* and click on the appearing link. You should be directed to our search engine :) 
+
+

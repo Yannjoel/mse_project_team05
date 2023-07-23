@@ -16,7 +16,7 @@ def searcher_api(query, ranker, test=False):
         scores = np.load("testscores.npy", allow_pickle=True)
         indices = np.load("testindices.npy", allow_pickle=True)
     else:
-        r = Reader()
+        #r = Reader()
         print("Load dataframe")
         df = pd.DataFrame(
             {
@@ -26,7 +26,12 @@ def searcher_api(query, ranker, test=False):
             }
         )
         print("Do ranking")
+        print(query, ranker)
+        print(df)
         titles, urls, scores, indices = searcher(query, df, ranker)
+        print(titles)
+
+    print(titles)
     np.save("titlesresult.npy", titles)
     np.save("urlsresult.npy", urls)
     np.save("scoresresult.npy", scores)
@@ -71,7 +76,10 @@ def create_scatter(query, ranker, varsize=False, list=False):
     titles = np.load("data/titles.npy", allow_pickle=True)
     max_score = np.max(scores)
     points = []
-    scores = scores / max_score
+    if max_score > 0:
+        scores = scores / max_score
+    import time
+    start = time.time()
     for i, (point, url, score) in enumerate(zip(tsne_coords, urls, scores)):
         if i in indices:
             size = 20
@@ -87,8 +95,8 @@ def create_scatter(query, ranker, varsize=False, list=False):
             color = "grey"
         if varsize:
             size = score * 20
-            if size < 1:
-                size = 1
+            if size < 3:
+                size = 3
         t = {
             "x": str(point[0]),
             "y": str(point[1]),
@@ -100,6 +108,8 @@ def create_scatter(query, ranker, varsize=False, list=False):
             "id": "{0}".format(i),
         }
         points.append(t)
+    end = time.time()
+    print("\n\n", end-start, "\n\n")
     with open("static/data/data.json", "w") as f:
         json.dump(points, f)
 
@@ -111,25 +121,67 @@ def create():
 
 @app.route("/tsne")
 def tsne():
-    data = {"width": 6000, "height": 2900, "color": False}
+    data = {"width": 8000, "height": 3000, "color": False}
     return render_template("tsne.html", data=data)
 
 
 @app.route("/", methods=["POST"])
 def my_form_post():
-    query = request.form["i1"]
-    ranker = request.form["i2"]
-    searcher_api(query, ranker)
-    data = get_ranked_results(None, None, cut=True)
-    create_scatter(query, ranker, varsize=False, list=True)
+    query = request.form["search"]
+    ranker = request.form["ranker"]
+    
+    if ranker == "NN" or ranker=="":
+        ranker="NeuralNetwork"
+    elif ranker == "RkSVM":
+        ranker="RankSVM"
+    
+    if len(query) > 0:
+        print(query)
+        searcher_api(query, ranker)
+    
+    size = False
+    if "size" in request.form:
+        size = True
+
+    color = False
+    if "colormap" in request.form:
+        color = True
+
+    liste = False
+    if "list" in request.form:
+        liste = True
+
+    zoom = "Zoom-factor 3"
+    if "zoom" in request.form:
+        if request.form['zoom'] != "":
+            zoom = request.form["zoom"]
+
+    possibilities = [
+        "Zoom-factor 1",
+        "Zoom-factor 2",
+        "Zoom-factor 3",
+        "Zoom-factor 4",
+        "Zoom-factor 5",
+    ]
+    
+    resolution = [[4000, 2250], [6000, 3350], [8000, 4500], [12000, 6700], [15000, 8400]]
+
+    create_scatter(query, ranker, varsize=size, list=False)
+
+    res = resolution[possibilities.index(zoom)]
+
+    data = get_ranked_results(None, None, True)
     transferred_data = {
-        "data": data,
-        "search": query,
-        "width": 6000,
-        "height": 4000,
-        "color": False,
+            "data": data,
+            "search": "",
+            "width": res[0],
+            "height": res[1],
+            "color": color,
     }
-    return render_template("list.html", data=transferred_data)
+    
+    return render_template("tsne_list.html", data=transferred_data)
+   
+    
 
 
 @app.route("/tsne", methods=["POST"])
@@ -161,7 +213,7 @@ def my_form_post_tsne():
         "Zoom-factor 4",
         "Zoom-factor 5",
     ]
-    resolution = [[3000, 1450], [4500, 2150], [6000, 2900], [7500, 3600], [14000, 6700]]
+    resolution = [[3000, 1450], [4500, 2150], [8000, 3300], [7500, 3600], [14000, 6700]]
 
     query = request.form["search"]
     print("\n\n\n", len(query), "\n\n\n")

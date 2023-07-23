@@ -19,10 +19,10 @@ const renderScatterPlot = (data) => {
 
     const xScale = d3.scaleLinear()
         .range([0, innerWidth])
-        .domain([-160, 160]);
+        .domain([-130, 130]);
     
     const yScale = d3.scaleLinear()
-        .domain([-160, 160])
+        .domain([-130, 130])
         .range([innerHeight, 0])
         .nice();
     

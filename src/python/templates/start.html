@@ -9,13 +9,13 @@
       <img src='/static/logo.png' class="imggeneral" alt="Italian Trulli" width="10%" height="auto">
       <!--<input type="text" class="input-search-new2" placeholder="Type to Search...">-->
       <div class="searchbardiv">
-        <form method="POST"><input type="text" name="i1" class="searchbarinput" placeholder="Type to Search..."> 
-        <input list="browsers" name="i2" id="browser" class="searchbarranker" placeholder="BM25" default="BM25">
+        <form method="POST"><input type="text" name="search" class="searchbarinput" placeholder="Type to Search..."> 
+        <input list="browsers" name="ranker" id="browser" class="searchbarranker" placeholder="BM25" default="NN">
         <datalist id="browsers">
           <option value="BM25">
-          <option value="NeuralNetwork">
+          <option value="NN">
           <option value="TfIdf">
-          <option value="RankSVM">
+          <option value="RkSVM">
         </datalist>
       </div>
       <input type="submit" id="submitbutton" class="submitbutton"></form>

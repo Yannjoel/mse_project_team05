@@ -8,11 +8,18 @@
       var htmlwidth = "{{data.width}}";
       var htmlheight = "{{data.height}}";
       var color = "{{data.color}}"; 
+      var fill;
+      var stroke;
+      var size;
       function bigImg(x) {
         console.log(document.getElementById('circle-'+x.id).getAttribute('r'));
         //d3.select('#circle-'+x.id).style("fil", 100);
-        d3.select('#circle-'+x.id).style("fill", "red");
-        d3.select('#circle-'+x.id).style("stroke", "red");
+        fill = d3.select('#circle-'+x.id).style("fill");
+        stroke = d3.select('#circle-'+x.id).style("stroke");
+        size = d3.select('#circle-'+x.id).style("r");
+        d3.select('#circle-'+x.id).style("fill", "green");
+        d3.select('#circle-'+x.id).style("stroke", "green");
+        d3.select('#circle-'+x.id).style("r", "50");
         /*d3.selectAll("circle").style("fill", "pink");
         /*console.log("Hallo");
         const circle = document.getElementById('circle'); // get the circle element
@@ -22,8 +29,11 @@
         console.log(gScatterPlot);*/
       }
       function out(x){
-        d3.select('#circle-'+x.id).style("fill", "black");
-        d3.select('#circle-'+x.id).style("stroke", "black");
+        //d3.select('#circle-'+x.id).style("fill", "black");
+        //d3.select('#circle-'+x.id).style("stroke", "black");
+        d3.select('#circle-'+x.id).style("fill", fill);
+        d3.select('#circle-'+x.id).style("stroke", stroke);
+        d3.select('#circle-'+x.id).style("r", size);
       }
     </script>
     <form method="POST"> 
@@ -42,7 +52,7 @@
       
        
         
-        
+       
       <input list="zooms" name="zoom" id="zoom" class="zoom" placeholder="Zoom-factor 3">
       <datalist id="zooms">
         <option value="Zoom-factor 1">
@@ -54,12 +64,12 @@
       
       
       <input type="checkbox" id="colormap" name="colormap" value="true">
-      <label class='label' for="colormap"> Relevance by color</label>
+      <label class='label' for="colormap"> <b>Relevance by color</b></label>
       
       <input type="checkbox" id="size" name="size" value="true">
-      <label for="size"> Relevance by size</label>
-      <input type="checkbox" id="list" name="list" value="true">
-      <label for="list"> Result list</label>
+      <label class="label" for="size"> <b>Relevance by size</b></label>
+      <!--<input type="checkbox" id="list" name="list" value="true">
+      <label class="label" for="list"> <b>Show result list</b></label>-->
       
       </div>
       <input type="submit" id="submitbutton" class="submitbutton" value=""></form>

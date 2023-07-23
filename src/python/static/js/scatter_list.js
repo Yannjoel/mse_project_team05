@@ -23,10 +23,10 @@ const renderScatterPlot = (data) => {
 
     const xScale = d3.scaleLinear()
         .range([0, innerWidth])
-        .domain([-160, 160]);
+        .domain([-135, 135]);
     
     const yScale = d3.scaleLinear()
-        .domain([-160, 160])
+        .domain([-135, 135])
         .range([innerHeight, 0])
         .nice();
     
@@ -99,14 +99,21 @@ const renderScatterPlot = (data) => {
         .data(data)
         .enter()
         .append("circle")
+        .attr("id", function(d,i) { return "circle-" + d.id; })
         .attr("class", "dot")
         .attr("cx", function (d) {
             return xScale(parseFloat(d.x));
         })
         .attr("cy", (d) => yScale(parseFloat(d.y)))
         .attr("r", (d) => d.size)
-        .attr("stroke", "black")
-        .attr("fill", "black")
+        .attr("score", function(d){
+            return colorScale(d.score);
+        })
+        .attr("fill", function(d){
+            return colorScale(d.score);
+        })
+        //.attr("stroke", "black")
+        //.attr("fill", "black")
         .attr("data-xvalue", (d) => parseFloat(d.x))
         .attr("data-yvalue", (d) => parseFloat(d.y))
         .on("click", function(d) {

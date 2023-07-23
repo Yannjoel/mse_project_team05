@@ -1,14 +1,16 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import pickle
+import scipy.sparse as sp
 
 from ranker import Ranker
 
 
 class TfIdf(Ranker):
-    def __init__(self, is_ranker=True):
-        self.vectorizer = TfidfVectorizer()
-        self.is_ranker = is_ranker
+    def __init__(self, vec_name="body"):
+        self.vec_name = vec_name
+        path = f"src/python/models/vectorizer_{vec_name}.pkl"
+        self.vectorizer = pickle.load(open(path, "rb"))
 
     def get_idf(self, query):
         query_idx = [self.vectorizer.vocabulary_.get(q_i) for q_i in query.split()]
@@ -19,15 +21,10 @@ class TfIdf(Ranker):
         else:
             return 0
 
-    def get_scores(self, query, df):
+    def get_scores(self, query, **kwargs):
         """returns cosine similarity of query and docs"""
-        if self.is_ranker:
-            docs = df["body"]
-        else:
-            docs = df
-        self.vectorizer.fit(docs)
 
-        query_vector = self.vectorizer.transform([query])
-        doc_vectors = self.vectorizer.transform(docs)
+        doc_vectors = sp.load_npz(f"data/{self.vec_name}_embedding.npz")
+        query_vector = sp.csr_matrix(self.vectorizer.transform([query]))
         scores = cosine_similarity(query_vector, doc_vectors)[0]
         return scores

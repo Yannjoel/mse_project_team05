@@ -19,8 +19,10 @@ def preprocess(doc):
 
 
 def remove_stopwords(doc):
-    """removes stopwords from given doc"""
+    """removes stopwords and punctuation from given doc"""
+    doc = doc.translate(str.maketrans("", "", string.punctuation)).lower()
     doc = " ".join(
         [word.lower() for word in doc.split() if word.lower() not in STOPWORDS]
     )
+    
     return doc

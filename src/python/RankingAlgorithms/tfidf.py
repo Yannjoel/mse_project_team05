@@ -24,7 +24,7 @@ class TfIdf(Ranker):
     def get_scores(self, query, **kwargs):
         """returns cosine similarity of query and docs"""
 
-        doc_vectors = sp.load_npz(f"data/{self.vec_name}_embedding.npz")
+        doc_vectors = sp.load_npz(f"src/python/data/{self.vec_name}_embedding.npz")
         query_vector = sp.csr_matrix(self.vectorizer.transform([query]))
         scores = cosine_similarity(query_vector, doc_vectors)[0]
         return scores

@@ -93,13 +93,13 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(
         {
-            "url": np.load("data/urls.npy", allow_pickle=True),
-            "body": np.load("data/bodies.npy", allow_pickle=True),
-            "title": np.load("data/titles.npy", allow_pickle=True),
+            "url": np.load("src/python/data/urls.npy", allow_pickle=True),
+            "body": np.load("src/python/data/bodies.npy", allow_pickle=True),
+            "title": np.load("src/python/data/titles.npy", allow_pickle=True),
         }
     )
     print("start querying on df of length", len(df))
     start = time.time()
-    print(searcher(query="bars Tübingen", df=df, ranker_str="NeuralNetwork", topk=10))
+    print(searcher(query="food and drinks and bananas", df=df, ranker_str="NeuralNetwork", topk=10))
     end = time.time()
     print(f"Time elapsed: {end-start}")

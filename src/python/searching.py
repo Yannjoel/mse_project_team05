@@ -29,7 +29,7 @@ def searcher(query, df, ranker_str="NeuralNetwork", topk=10):
         for i, (url, score) in enumerate(zip(urls, top_k_scores), start=1):
             f.write(f"{i}.\t{url}\t{score}\n")
 
-    return titles, urls, scores
+    return titles, urls, scores, top_k
 
 
 def diversify(titles, sorted_indices, topk=10):

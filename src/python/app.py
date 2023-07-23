@@ -20,9 +20,9 @@ def searcher_api(query, ranker, test=False):
         print("Load dataframe")
         df = pd.DataFrame(
             {
-                "url": np.load("data/urls.npy", allow_pickle=True),
-                "body": np.load("data/bodies.npy", allow_pickle=True),
-                "title": np.load("data/titles.npy", allow_pickle=True),
+                "url": np.load("src/python/data/urls.npy", allow_pickle=True),
+                "body": np.load("src/python/data/bodies.npy", allow_pickle=True),
+                "title": np.load("src/python/data/titles.npy", allow_pickle=True),
             }
         )
         print("Do ranking")
@@ -71,9 +71,9 @@ def create_scatter(query, ranker, varsize=False, list=False):
     urls = np.load("urlsresult.npy", allow_pickle=True)
     scores = np.load("scoresresult.npy", allow_pickle=True)
     indices = np.load("indicesresult.npy", allow_pickle=True)
-    tsne_coords = np.load("data/tsne_result.npy")
-    urls = np.load("data/urls.npy", allow_pickle=True)
-    titles = np.load("data/titles.npy", allow_pickle=True)
+    tsne_coords = np.load("src/python/data/tsne_result.npy")
+    urls = np.load("src/python/data/urls.npy", allow_pickle=True)
+    titles = np.load("src/python/data/titles.npy", allow_pickle=True)
     max_score = np.max(scores)
     points = []
     if max_score > 0:
@@ -104,13 +104,13 @@ def create_scatter(query, ranker, varsize=False, list=False):
             "size": size,
             "stroke": stroke,
             "color": color,
-            "score": score,
+            "score": str(score),
             "id": "{0}".format(i),
         }
         points.append(t)
     end = time.time()
     print("\n\n", end-start, "\n\n")
-    with open("static/data/data.json", "w") as f:
+    with open("src/python/static/data/data.json", "w") as f:
         json.dump(points, f)
 
 

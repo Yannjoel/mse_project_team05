@@ -100,6 +100,6 @@ if __name__ == "__main__":
     )
     print("start querying on df of length", len(df))
     start = time.time()
-    print(searcher(query="food and drinks and bananas", df=df, ranker_str="NeuralNetwork", topk=10))
+    print(searcher(query="food and drinks", df=df, ranker_str="NeuralNetwork", topk=10))
     end = time.time()
     print(f"Time elapsed: {end-start}")
